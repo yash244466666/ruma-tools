@@ -41,7 +41,7 @@ consecutive runs of the final driver completed green.
 
 Automated coverage that passed:
 
-- Cold launch on the bundled production origin `https://app.yash.tools`
+- Cold launch on the bundled production origin `https://app.ruma.tools`
   (`isSecureContext` true, no route), catalog rendering all 25 enabled tool
   cards, catalog search filtering, labeled primary navigation with
   `aria-current`, system Back returning from a tool to the catalog, and theme

@@ -32,7 +32,7 @@ import { createMicrophoneRecorderService } from "@/platform/shared/microphone-re
 import { secureRandomService } from "@/platform/shared/random"
 import { validatedExternalUrl } from "@/platform/shared/urls"
 
-const preferencePrefix = "yash-tools:v1:"
+const preferencePrefix = "ruma-tools:v1:"
 const saveCacheDirectory = "save"
 const maximumPickerBytes = 100 * 1024 * 1024
 

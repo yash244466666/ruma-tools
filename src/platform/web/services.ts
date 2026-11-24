@@ -17,7 +17,7 @@ import {
 import { secureRandomService } from "@/platform/shared/random"
 import { validatedExternalUrl } from "@/platform/shared/urls"
 
-const preferencePrefix = "yash-tools:v1:"
+const preferencePrefix = "ruma-tools:v1:"
 const maximumClipboardBytes = 1024 * 1024
 /** The plan's JavaScript hashing limit; Android streams natively instead. */
 const maximumWebDigestBytes = 50 * 1024 * 1024

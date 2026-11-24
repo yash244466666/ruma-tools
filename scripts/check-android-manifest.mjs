@@ -42,7 +42,7 @@ const permissionNames = [...manifest.matchAll(/<uses-permission[^>]+android:name
 const unexpectedPermissions = permissionNames.filter(
   (permission) =>
     !allowedPermissions.has(permission) &&
-    !/^dev\.yash\.tools(?:\.(?:debug|internal))?\.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION$/.test(
+    !/^dev\.ruma\.tools(?:\.(?:debug|internal))?\.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION$/.test(
       permission,
     ),
 )
@@ -56,7 +56,7 @@ const exportedComponents = [
   ),
 ].map((match) => `${match[1]}:${match[2]}`)
 const unexpectedExports = exportedComponents.filter(
-  (component) => component !== "activity:dev.yash.tools.MainActivity",
+  (component) => component !== "activity:dev.ruma.tools.MainActivity",
 )
 
 const configurationFailures = []

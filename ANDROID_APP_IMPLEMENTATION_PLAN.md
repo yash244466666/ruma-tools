@@ -897,7 +897,7 @@ Estimated duration: 1–2 days.
 Decide:
 
 - Final app name
-- Immutable Android application ID, for example `dev.yash.tools`
+- Immutable Android application ID, for example `dev.ruma.tools`
 - Repository name
 - Free, paid, advertising, or donation model
 - Analytics and crash-reporting policy

@@ -7,8 +7,8 @@
           app-under-test and test APK have different UIDs on device.
         -->
         <provider
-            android:name="dev.yash.tools.TestDocumentsProvider"
-            android:authorities="dev.yash.tools.test.documents"
+            android:name="dev.ruma.tools.TestDocumentsProvider"
+            android:authorities="dev.ruma.tools.test.documents"
             android:exported="true"
             android:grantUriPermissions="true" />
     </application>

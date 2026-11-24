@@ -13,7 +13,7 @@ DNS Lookup (issue #81) is the second network tool and the last pre-approved vers
 Provider review performed 2026-09-07 (recorded here because it gates enablement):
 
 - Cloudflare 1.1.1.1 DNS-over-HTTPS is free, requires no API key, and is documented at `https://developers.cloudflare.com/1.1.1.1/`; the JSON API (`accept: application/dns-json`) is a documented interface.
-- Every probed response carries `access-control-allow-origin: *`, so CORS works from the packaged production origin `https://app.yash.tools` (the CSP `connect-src` entry `https://cloudflare-dns.com` has been present since the foundation as the second layer).
+- Every probed response carries `access-control-allow-origin: *`, so CORS works from the packaged production origin `https://app.ruma.tools` (the CSP `connect-src` entry `https://cloudflare-dns.com` has been present since the foundation as the second layer).
 - Successful queries return HTTP 200 with a DNS rcode payload: `Status` (integer), optional `Answer` rows `{name, type, TTL, data}`, and `Authority`/`Question` sections.
 - A non-existent domain is **rcode 3 (NXDOMAIN) inside HTTP 200**, not an HTTP error.
 - Invalid query names and invalid query types return **HTTP 400 with a JSON `{"error": …}` body**.

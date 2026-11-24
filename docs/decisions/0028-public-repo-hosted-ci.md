@@ -37,7 +37,7 @@ Those constraints are now reversed by the owner, but the security consequence is
 ### CD and deployment
 
 - The Android job uploads the **debug APK**, **internal APK**, and **unsigned release AAB** as 14-day build artifacts for every branch run.
-- On a push to `main` or `dev`, a `debug-release` job publishes the debug APK as a **pre-release** (`debug-<branch>-<run>`) for testers. It is debug-signed and installs as `dev.yash.tools.debug`; it is not a production candidate.
+- On a push to `main` or `dev`, a `debug-release` job publishes the debug APK as a **pre-release** (`debug-<branch>-<run>`) for testers. It is debug-signed and installs as `dev.ruma.tools.debug`; it is not a production candidate.
 - A Pages workflow publishes the Vite web harness for both branches: `main` at the site root and `dev` under `/dev/`. This is a browser preview, not the Android product.
 - **No Google Play deployment is configured.** The release AAB remains intentionally unsigned, and no upload keystore, Play service account, or Play credentials exist in the repository. Play deployment stays behind the product-owner release gates (#27–#41) and requires explicit authorization plus key custody.
 

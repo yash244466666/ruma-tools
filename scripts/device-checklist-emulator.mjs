@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process"
 import { writeFileSync } from "node:fs"
 
-const PACKAGE = "dev.yash.tools.debug"
+const PACKAGE = "dev.ruma.tools.debug"
 const ARTIFACT_PATH = "android/app/build/outputs/apk/debug/app-debug.apk"
 const CDP_HOST = "http://127.0.0.1:9222"
 /**
@@ -399,7 +399,7 @@ async function connectPage() {
           rawTargets
         )
       const pageTarget = targets.find(
-        (target) => target.type === "page" && target.url?.includes("app.yash.tools"),
+        (target) => target.type === "page" && target.url?.includes("app.ruma.tools"),
       )
       if (pageTarget?.webSocketDebuggerUrl) {
         return await CdpPage.connect(pageTarget.webSocketDebuggerUrl)
@@ -409,7 +409,7 @@ async function connectPage() {
     }
     spawnSync("sleep", ["1"])
   }
-  throw new Error("Bundled app.yash.tools WebView target not found.")
+  throw new Error("Bundled app.ruma.tools WebView target not found.")
 }
 
 /** @returns {Promise<CdpPage>} */
@@ -484,7 +484,7 @@ async function phaseShell() {
   )
   record(
     "shell.bundledOriginColdLaunch",
-    origin.origin === "https://app.yash.tools" && origin.secure === true && origin.hash === ""
+    origin.origin === "https://app.ruma.tools" && origin.secure === true && origin.hash === ""
       ? "PASS"
       : "FAIL",
     JSON.stringify(origin),

@@ -172,7 +172,7 @@ vi.mock("@capacitor/share", () => ({ Share: { share: pluginMocks.share } }))
 import { capacitorPlatformServices } from "@/platform/capacitor/services"
 import { webPlatformServices } from "@/platform/web/services"
 
-const preferencePrefix = "yash-tools:v1:"
+const preferencePrefix = "ruma-tools:v1:"
 
 interface AdapterHarness {
   services: PlatformServices

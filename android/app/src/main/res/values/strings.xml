@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Yash Tools</string>
-    <string name="title_activity_main">Yash Tools</string>
-    <string name="package_name">dev.yash.tools</string>
-    <string name="custom_url_scheme">dev.yash.tools</string>
-    <string name="safe_mode_title">Yash Tools cannot continue safely</string>
+    <string name="app_name">Ruma Tools</string>
+    <string name="title_activity_main">Ruma Tools</string>
+    <string name="package_name">dev.ruma.tools</string>
+    <string name="custom_url_scheme">dev.ruma.tools</string>
+    <string name="safe_mode_title">Ruma Tools cannot continue safely</string>
     <string name="safe_mode_body">The app screen renderer stopped unexpectedly. Your saved settings and favorites stay on this device. Reload the app to continue.</string>
     <string name="safe_mode_reload">Reload app</string>
 </resources>

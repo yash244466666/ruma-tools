@@ -7,7 +7,7 @@ import { chromium } from "@playwright/test"
 import { mkdirSync } from "node:fs"
 
 const BASE = process.env.AUDIT_BASE ?? "http://127.0.0.1:4173"
-const OUT = process.env.AUDIT_OUT ?? "/tmp/yash-ui-audit"
+const OUT = process.env.AUDIT_OUT ?? "/tmp/ruma-ui-audit"
 
 const screens = [
   ["catalog", "#/"],
@@ -47,7 +47,7 @@ for (const theme of themes) {
   const context = await browser.newContext({ viewport: { width: 375, height: 667 } })
   const page = await context.newPage()
   await page.addInitScript(
-    (t) => localStorage.setItem("yash-tools:v1:theme", JSON.stringify(t)),
+    (t) => localStorage.setItem("ruma-tools:v1:theme", JSON.stringify(t)),
     theme,
   )
   await page.goto(BASE + "/#/")

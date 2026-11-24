@@ -168,7 +168,7 @@ export function buildIcsCalendar(input: IcsEventInput, clock: IcsClock): IcsResu
   const lines: string[] = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Yash Tools//EN",
+    "PRODID:-//Ruma Tools//EN",
     "BEGIN:VEVENT",
     `UID:${clock.uid}`,
     `DTSTAMP:${clock.now}`,

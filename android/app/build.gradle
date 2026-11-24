@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "dev.yash.tools"
+    namespace = "dev.ruma.tools"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "dev.yash.tools"
+        applicationId "dev.ruma.tools"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

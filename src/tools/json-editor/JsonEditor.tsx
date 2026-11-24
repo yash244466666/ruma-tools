@@ -165,7 +165,7 @@ export default function JsonEditor() {
                   className="app-input min-h-64 resize-y font-mono text-sm"
                   id="json-input"
                   onChange={(event) => setText(event.target.value)}
-                  placeholder={'For example {"name": "Yash Tools", "offline": true}'}
+                  placeholder={'For example {"name": "Ruma Tools", "offline": true}'}
                   spellCheck={false}
                   value={text}
                 />

@@ -1,6 +1,6 @@
 import type { GeneratedFile } from "@/platform/contracts"
 
-const fallbackName = "yash-tools-output"
+const fallbackName = "ruma-tools-output"
 const maximumFileNameBytes = 120
 
 export const maximumBridgeGeneratedFileBytes = 5 * 1024 * 1024

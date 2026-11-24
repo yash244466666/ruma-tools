@@ -143,7 +143,7 @@ describe("Currency Converter interactions", () => {
     await settle()
 
     const stored = JSON.parse(
-      window.localStorage.getItem("yash-tools:v1:currency:rates") ?? "",
+      window.localStorage.getItem("ruma-tools:v1:currency:rates") ?? "",
     ) as {
       schemaVersion: number
       entries: Record<string, { quotes: Record<string, { rate: number; date: string }> }>
@@ -164,7 +164,7 @@ describe("Currency Converter interactions", () => {
         },
       },
     }
-    window.localStorage.setItem("yash-tools:v1:currency:rates", JSON.stringify(seeded))
+    window.localStorage.setItem("ruma-tools:v1:currency:rates", JSON.stringify(seeded))
     networkState.connected = false
     fetchMock.mockRejectedValue(new TypeError("network offline"))
 

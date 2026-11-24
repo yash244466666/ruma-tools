@@ -1,4 +1,4 @@
-# Yash Tools for Android
+# Ruma Tools for Android
 
 An offline-first Android utility application derived from the client-side tools in Yash Sikdar's portfolio. The application uses React, TypeScript, Vite, Tailwind CSS, Capacitor, and a generated native Android project.
 

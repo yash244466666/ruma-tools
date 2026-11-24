@@ -215,9 +215,9 @@ Rules:
 
 Current identity is provisional:
 
-- Display name: `Yash Tools`.
-- Application ID: `dev.yash.tools`.
-- Production bundled origin: `https://app.yash.tools`.
+- Display name: `Ruma Tools`.
+- Application ID: `dev.ruma.tools`.
+- Production bundled origin: `https://app.ruma.tools`.
 
 These must be approved before Play application creation. After public release, the application ID cannot be changed for that listing, and changing the WebView origin can break access to stored web-origin data.
 
@@ -320,7 +320,7 @@ State classes:
 - Active operation: conversion/hash/media/timer; persist only explicitly safe resumable metadata.
 - Disposable: decoded buffers, object URLs, Workers, temporary files, caches.
 
-Current preference namespace is `yash-tools:v1:`. Changes require migration design; never silently rename the namespace after users have durable data.
+Current preference namespace is `ruma-tools:v1:`. Changes require migration design; never silently rename the namespace after users have durable data.
 
 Privacy rules:
 

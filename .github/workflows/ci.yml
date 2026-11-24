@@ -133,4 +133,4 @@ jobs:
             --prerelease \
             --target "$GITHUB_SHA" \
             --title "Debug build ${GITHUB_REF_NAME} #${GITHUB_RUN_NUMBER}" \
-            --notes "Automated debug build from \`${GITHUB_REF_NAME}\` at \`${GITHUB_SHA}\`. Debug-signed, package \`dev.yash.tools.debug\`. Test-only; not a production candidate and not Play-signed."
+            --notes "Automated debug build from \`${GITHUB_REF_NAME}\` at \`${GITHUB_SHA}\`. Debug-signed, package \`dev.ruma.tools.debug\`. Test-only; not a production candidate and not Play-signed."
