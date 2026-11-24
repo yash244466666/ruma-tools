@@ -25,6 +25,8 @@ The intended product is a fast, privacy-conscious collection of developer and ev
 
 The source portfolio is an upstream reference, not a runtime dependency.
 
+The repository is licensed under the **MIT License** (ADR 0029; root `LICENSE`). Contributions are accepted under the same terms. Third-party dependencies and copied assets keep their own licenses and notices, so license compatibility must be checked for every new dependency or imported asset.
+
 ## 2. Current foundation status
 
 Implemented now:

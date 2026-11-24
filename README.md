@@ -105,3 +105,9 @@ pnpm android:test:connected
 - Do not publish the current foundation artifact.
 
 Read [AGENT.md](AGENT.md) before making changes. It contains the complete repository operating rules.
+
+## License
+
+This repository is released under the [MIT License](LICENSE). You may use, copy, modify, merge, publish, distribute, sublicense, and sell copies of the software, provided the copyright notice and permission notice are included in all copies or substantial portions of it. The software is provided "as is", without warranty of any kind.
+
+The MIT license covers this repository's own source. Bundled third-party dependencies and copied assets keep their own licenses; see [docs/SOURCE_PROVENANCE.md](docs/SOURCE_PROVENANCE.md) and the CycloneDX SBOM under `docs/certification/sbom/`. The tool implementations and dependencies remain subject to their upstream terms, and the Android application's release obligations (notices, store policy, and device certification) still apply.
