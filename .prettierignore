@@ -3,3 +3,4 @@ dist/
 coverage/
 pnpm-lock.yaml
 ANDROID_APP_IMPLEMENTATION_PLAN.md
+LICENSE

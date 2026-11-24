@@ -15,7 +15,7 @@ export const maximumBreakMinutes = 30
 export const defaultWorkMinutes = 25
 export const defaultBreakMinutes = 5
 
-/** Durable timer metadata key inside the `yash-tools:v1:` preference namespace. */
+/** Durable timer metadata key inside the `ruma-tools:v1:` preference namespace. */
 export const pomodoroStorageKey = "pomodoro:timer"
 export const pomodoroSchemaVersion = 1
 

@@ -1,12 +1,12 @@
 import type { CapacitorConfig } from "@capacitor/cli"
 
 const config: CapacitorConfig = {
-  appId: "dev.yash.tools",
-  appName: "Yash Tools",
+  appId: "dev.ruma.tools",
+  appName: "Ruma Tools",
   webDir: "dist",
   server: {
     androidScheme: "https",
-    hostname: "app.yash.tools",
+    hostname: "app.ruma.tools",
     cleartext: false,
   },
   android: {

@@ -1,17 +1,17 @@
 # ADR 0002: Provisional Identity and Version 1 Privacy Posture
 
-- Status: Provisional; must be approved before Play app creation
-- Date: 2026-09-05
+- Status: Identity values approved and updated by [ADR 0030](0030-ruma-tools-identity.md); the privacy posture below remains in force.
+- Date: 2026-09-05 (identity values updated 2026-11-24)
 - Owner: Yash Sikdar
-- Revisit when: app naming/package/domain is approved, monetization changes, or any SDK/backend/data collection is proposed.
+- Revisit when: the Play listing is created, domain ownership or App Links change, monetization changes, or any SDK/backend/data collection is proposed.
 
 ## Decision
 
 Foundation values:
 
-- App name: `Yash Tools`.
-- Application ID: `dev.yash.tools`.
-- Bundled local origin: `https://app.yash.tools`.
+- App name: `Ruma Tools`.
+- Application ID: `dev.ruma.tools`.
+- Bundled local origin: `https://app.ruma.tools`.
 - Minimum API: 24.
 - Target/compile API: 36.
 - Free, no ads, no analytics, no account, no cloud sync, no automatic crash upload.

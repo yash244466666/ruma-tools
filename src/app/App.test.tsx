@@ -79,10 +79,10 @@ describe("application shell", () => {
   })
 
   it("states exact classes and counts before clearing local data", async () => {
-    localStorage.setItem("yash-tools:v1:favorites", JSON.stringify(["unit-converter"]))
-    localStorage.setItem("yash-tools:v1:recents", JSON.stringify(["unit-converter", "notes"]))
+    localStorage.setItem("ruma-tools:v1:favorites", JSON.stringify(["unit-converter"]))
+    localStorage.setItem("ruma-tools:v1:recents", JSON.stringify(["unit-converter", "notes"]))
     localStorage.setItem(
-      "yash-tools:v1:bookmarks:manager",
+      "ruma-tools:v1:bookmarks:manager",
       JSON.stringify({ version: 1, bookmarks: [{}, {}] }),
     )
     window.location.hash = "#/settings"
@@ -109,7 +109,7 @@ describe("application shell", () => {
     expect(message).toContain("This cannot be undone.")
     expect(message).not.toContain("scratchpad note")
     expect(message).not.toContain("exchange rates")
-    expect(localStorage.getItem("yash-tools:v1:favorites")).not.toBeNull()
+    expect(localStorage.getItem("ruma-tools:v1:favorites")).not.toBeNull()
   })
 
   it("names every durable data class in the settings summary", async () => {
@@ -140,8 +140,8 @@ describe("application shell", () => {
   })
 
   it("clears every durable class when the clear action is confirmed", async () => {
-    localStorage.setItem("yash-tools:v1:favorites", JSON.stringify(["unit-converter"]))
-    localStorage.setItem("yash-tools:v1:notes:scratchpad", JSON.stringify({ text: "test" }))
+    localStorage.setItem("ruma-tools:v1:favorites", JSON.stringify(["unit-converter"]))
+    localStorage.setItem("ruma-tools:v1:notes:scratchpad", JSON.stringify({ text: "test" }))
     window.location.hash = "#/settings"
     vi.spyOn(window, "confirm").mockReturnValue(true)
 
@@ -153,15 +153,15 @@ describe("application shell", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Clear local preferences" }))
 
-    await waitFor(() => expect(localStorage.getItem("yash-tools:v1:notes:scratchpad")).toBeNull())
+    await waitFor(() => expect(localStorage.getItem("ruma-tools:v1:notes:scratchpad")).toBeNull())
     // The favorites hook writes the emptied array back after clearing.
-    const favorites = localStorage.getItem("yash-tools:v1:favorites")
+    const favorites = localStorage.getItem("ruma-tools:v1:favorites")
     if (favorites !== null) expect(JSON.parse(favorites) as unknown[]).toEqual([])
   })
 
   it("shows stored recent tools in most-recent-first order", async () => {
     localStorage.setItem(
-      "yash-tools:v1:recents",
+      "ruma-tools:v1:recents",
       JSON.stringify(["qr-generator", "unit-converter", "removed-tool"]),
     )
     window.location.hash = "#/recent"

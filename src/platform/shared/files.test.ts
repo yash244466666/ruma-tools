@@ -9,7 +9,7 @@ import {
 describe("generated file safety", () => {
   it("removes path separators, control characters, and unsafe empty names", () => {
     expect(sanitizeGeneratedFileName(" ../private\\report\u0000.txt ")).toBe("-private-report-.txt")
-    expect(sanitizeGeneratedFileName("...")).toBe("yash-tools-output")
+    expect(sanitizeGeneratedFileName("...")).toBe("ruma-tools-output")
     expect(Array.from(sanitizeGeneratedFileName("😀".repeat(130)))).toHaveLength(30)
   })
 

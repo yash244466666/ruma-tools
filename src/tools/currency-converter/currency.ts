@@ -36,7 +36,7 @@ export const maximumAmount = 1_000_000_000
 export const defaultFromCurrency = "USD"
 export const defaultToCurrency = "EUR"
 
-/** Durable rates cache key inside the `yash-tools:v1:` preference namespace. */
+/** Durable rates cache key inside the `ruma-tools:v1:` preference namespace. */
 export const currencyStorageKey = "currency:rates"
 export const currencySchemaVersion = 1
 

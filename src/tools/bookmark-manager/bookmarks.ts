@@ -13,7 +13,7 @@
  * opening one goes through the platform external-browser service.
  */
 
-/** Key inside the `yash-tools:v1:` preference namespace; `preferences.clear()` removes it. */
+/** Key inside the `ruma-tools:v1:` preference namespace; `preferences.clear()` removes it. */
 export const bookmarksStorageKey = "bookmarks:manager"
 
 /** Current stored-bookmarks schema version. */

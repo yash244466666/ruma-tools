@@ -2,6 +2,13 @@ import { spawnSync } from "node:child_process"
 import { readFileSync } from "node:fs"
 import { resolve } from "node:path"
 
+/**
+ * Opaque marker embedded in live GitHub issue bodies. The sync locates managed issues by this
+ * exact string, so it must keep its original spelling even though the project was renamed to
+ * Ruma Tools: changing it would orphan every provisioned work item and create duplicates.
+ */
+const WORK_ITEM_MARKER = "yash-tools-work-item"
+
 type CategoryId = "core" | "dev" | "text" | "media" | "security" | "math"
 type WorkType = "Epic" | "Tool" | "Foundation" | "Quality" | "Release" | "Bug"
 
@@ -296,10 +303,7 @@ function validateManifest(): {
   issueKeys: Set<string>
 } {
   invariant(manifest.schemaVersion === 1, "Unsupported work-item manifest schema")
-  invariant(
-    manifest.repository === "yash244466666/portfolio-tools-android",
-    "Unexpected repository",
-  )
+  invariant(manifest.repository === "yash244466666/ruma-tools", "Unexpected repository")
   // GitHub caps a Project's short description at 300 characters and rejects `gh project edit`
   // only after labels, milestones, and issues have already been provisioned. Reject it here so
   // a dry run surfaces the problem and an apply never leaves a half-provisioned project.
@@ -549,8 +553,8 @@ function checklist(lines: string[]): string {
 }
 
 function bodyFor(item: WorkItemDefinition): string {
-  const marker = `<!-- yash-tools-work-item:${item.key} -->`
-  const endMarker = "<!-- /yash-tools-work-item -->"
+  const marker = `<!-- ${WORK_ITEM_MARKER}:${item.key} -->`
+  const endMarker = `<!-- /${WORK_ITEM_MARKER} -->`
   const metadata = [
     `- Work type: ${item.type}`,
     `- Priority: ${item.priority}`,
@@ -925,7 +929,7 @@ function provisionMilestones(repository: string): Map<string, GitHubMilestone> {
 }
 
 function markerKey(body: string | null): string | null {
-  return body?.match(/<!-- yash-tools-work-item:([^ ]+) -->/)?.[1] ?? null
+  return body?.match(new RegExp(`<!-- ${WORK_ITEM_MARKER}:([^ ]+) -->`))?.[1] ?? null
 }
 
 function reconciledIssueBody(currentBody: string | null, desiredBody: string): string {
@@ -937,8 +941,8 @@ function reconciledIssueBody(currentBody: string | null, desiredBody: string): s
   const withCompletedChecks = desiredBody.replace(/^- \[ \] (.+)$/gm, (line, text: string) =>
     completed.has(text) ? `- [x] ${text}` : line,
   )
-  const start = currentBody.search(/<!-- yash-tools-work-item:[^ ]+ -->/)
-  const endMarker = "<!-- /yash-tools-work-item -->"
+  const start = currentBody.search(new RegExp(`<!-- ${WORK_ITEM_MARKER}:[^ ]+ -->`))
+  const endMarker = `<!-- /${WORK_ITEM_MARKER} -->`
   const end = currentBody.indexOf(endMarker, start)
   if (start < 0 || end < 0) return withCompletedChecks
 

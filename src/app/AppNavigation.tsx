@@ -23,7 +23,7 @@ export function AppNavigation({ route, favoriteCount }: AppNavigationProps) {
         <a
           className="brand-mark"
           href={routeHref({ screen: "catalog" })}
-          aria-label="Yash Tools home"
+          aria-label="Ruma Tools home"
         >
           <Wrench aria-hidden="true" size={25} strokeWidth={2.2} />
         </a>

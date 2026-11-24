@@ -189,7 +189,7 @@ test("image compressor compresses a picked image end to end", async ({ page }) =
   await expect(page.getByRole("heading", { name: "Image Compressor" })).toBeVisible()
 
   // A synthetic 1x1 PNG exercises the real picker, decode, canvas, and PNG re-encode.
-  const pngPath = join(tmpdir(), "yash-tools-e2e-image.png")
+  const pngPath = join(tmpdir(), "ruma-tools-e2e-image.png")
   writeFileSync(
     pngPath,
     Buffer.from(
@@ -440,7 +440,7 @@ test("pdf converter extracts real text from a generated two-page PDF", async ({ 
   await page.goto("/#/tool/pdf-converter")
   await expect(page.getByRole("heading", { name: "PDF Converter" })).toBeVisible()
 
-  const pdfPath = join(tmpdir(), "yash-tools-e2e-text.pdf")
+  const pdfPath = join(tmpdir(), "ruma-tools-e2e-text.pdf")
   const fixture = await PDFDocument.create()
   const font = await fixture.embedFont(StandardFonts.Helvetica)
   for (const line of ["Alpha page", "Beta page"]) {
@@ -468,7 +468,7 @@ test("pdf converter saves a real PDF built from picked images", async ({ page })
   await page.goto("/#/tool/pdf-converter")
   await expect(page.getByRole("heading", { name: "PDF Converter" })).toBeVisible()
 
-  const pngPath = join(tmpdir(), "yash-tools-e2e-pdf-image.png")
+  const pngPath = join(tmpdir(), "ruma-tools-e2e-pdf-image.png")
   writeFileSync(
     pngPath,
     Buffer.from(
@@ -488,13 +488,13 @@ test("pdf converter saves a real PDF built from picked images", async ({ page })
     page.waitForEvent("download"),
     page.getByRole("button", { name: "Convert to PDF" }).click(),
   ])
-  expect(download.suggestedFilename()).toBe("yash-tools-e2e-pdf-image.pdf")
-  const savedPath = join(tmpdir(), "yash-tools-e2e-output.pdf")
+  expect(download.suggestedFilename()).toBe("ruma-tools-e2e-pdf-image.pdf")
+  const savedPath = join(tmpdir(), "ruma-tools-e2e-output.pdf")
   await download.saveAs(savedPath)
   const saved = readFileSync(savedPath)
   // The real pdf-lib output begins with the PDF magic and closes with EOF.
   expect(saved.subarray(0, 5).toString()).toBe("%PDF-")
-  await expect(page.getByText("Saved yash-tools-e2e-pdf-image.pdf with 1 page.")).toBeVisible()
+  await expect(page.getByText("Saved ruma-tools-e2e-pdf-image.pdf with 1 page.")).toBeVisible()
 })
 
 test("audio recorder discloses offline-only capture and the unsupported fallback honestly", async ({

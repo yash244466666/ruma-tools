@@ -66,7 +66,7 @@ describe("buildIcsCalendar", () => {
     expect(result.calendar.slice(0, -2).split("\r\n")).toEqual([
       "BEGIN:VCALENDAR",
       "VERSION:2.0",
-      "PRODID:-//Yash Tools//EN",
+      "PRODID:-//Ruma Tools//EN",
       "BEGIN:VEVENT",
       "UID:abcd1234",
       "DTSTAMP:20260908T010203Z",

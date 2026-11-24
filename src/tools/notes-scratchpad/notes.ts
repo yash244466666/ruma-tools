@@ -10,7 +10,7 @@ import { countWords } from "@/tools/_shared/word-tokenizer"
  * is never encrypted, and the UI must say so.
  */
 
-/** Key inside the `yash-tools:v1:` preference namespace; `preferences.clear()` removes it. */
+/** Key inside the `ruma-tools:v1:` preference namespace; `preferences.clear()` removes it. */
 export const notesStorageKey = "notes:scratchpad"
 
 /** Current stored-note schema version. */

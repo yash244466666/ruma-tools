@@ -169,6 +169,6 @@ describe("suggestedGifName", () => {
   })
 
   it("falls back when nothing usable remains", () => {
-    expect(suggestedGifName("...")).toBe("yash-tools-output.gif")
+    expect(suggestedGifName("...")).toBe("ruma-tools-output.gif")
   })
 })

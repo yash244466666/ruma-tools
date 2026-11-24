@@ -14,7 +14,7 @@ The runtime boundary is unchanged from `docs/ARCHITECTURE.md` and was
 re-verified against the current source:
 
 - All application HTML/JS is bundled and loaded from the production local
-  origin `https://app.yash.tools`; no remote code loading, live-update SDK,
+  origin `https://app.ruma.tools`; no remote code loading, live-update SDK,
   `eval`, or remote JavaScript exists (`src/` contains no `eval` and the CSP
   meta policy blocks script sources other than self).
 - Tools depend only on `src/platform/contracts.ts`; no tool imports
@@ -70,7 +70,7 @@ runs (see `docs/certification/regression-matrix.md`).
 
 | Data class               | Location                                     | Backup/transfer | Cleared by                                                 |
 | ------------------------ | -------------------------------------------- | --------------- | ---------------------------------------------------------- |
-| Preferences              | `yash-tools:v1:` namespaced store            | Excluded        | Uninstall, clear storage, settings Clear All               |
+| Preferences              | `ruma-tools:v1:` namespaced store            | Excluded        | Uninstall, clear storage, settings Clear All               |
 | Notes (durable)          | Versioned preference payload                 | Excluded        | Explicit in-tool clear or uninstall                        |
 | Pomodoro state           | Versioned preference (safe metadata only)    | Excluded        | Uninstall/clear                                            |
 | Favorites/Recents        | Device-local IDs                             | Excluded        | Explicit clear actions                                     |

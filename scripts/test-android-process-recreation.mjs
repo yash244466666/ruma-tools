@@ -3,10 +3,10 @@ import { resolve } from "node:path"
 
 const repositoryRoot = resolve(import.meta.dirname, "..")
 const gradle = resolve(repositoryRoot, "android/gradlew")
-const targetPackage = "dev.yash.tools.debug"
-const testPackage = "dev.yash.tools.debug.test"
+const targetPackage = "dev.ruma.tools.debug"
+const testPackage = "dev.ruma.tools.debug.test"
 const runner = "androidx.test.runner.AndroidJUnitRunner"
-const testClass = "dev.yash.tools.ProcessRecreationInstrumentedTest"
+const testClass = "dev.ruma.tools.ProcessRecreationInstrumentedTest"
 
 /**
  * @param {string} command

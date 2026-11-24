@@ -32,7 +32,7 @@
 
 The checklist driver's runs on the 100-tool scope (before the ADR 0023 cut)
 executed both network tools inside the installed debug
-artifact on the bundled production origin (`https://app.yash.tools`, verified
+artifact on the bundled production origin (`https://app.ruma.tools`, verified
 `isSecureContext`) against the live providers with attribution displayed —
 proving the packaged origin's CORS behavior end to end. The most recent of
 those runs (2026-09-15 at `bd5b310`, artifact `febb136f…`) recorded

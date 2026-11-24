@@ -35,7 +35,7 @@ const SHARED_TEST_PATHS = /** @type {Record<string, string[]>} */ ({
   // bridge: shared JS helpers plus native SHA policy vectors.
   "file-hash-checker": [
     "src/platform/shared/files.test.ts",
-    "android/app/src/test/java/dev/yash/tools/ContentReadPolicyTest.java",
+    "android/app/src/test/java/dev/ruma/tools/ContentReadPolicyTest.java",
   ],
 })
 

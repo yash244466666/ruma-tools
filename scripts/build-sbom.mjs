@@ -114,7 +114,7 @@ const sbom = {
       type: "application",
       name: APP.name,
       version: APP.version,
-      description: "Yash Tools: offline-first Android utility app (Capacitor/React).",
+      description: "Ruma Tools: offline-first Android utility app (Capacitor/React).",
     },
   },
   components,
