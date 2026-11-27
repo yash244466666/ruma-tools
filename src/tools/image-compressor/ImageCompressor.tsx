@@ -5,7 +5,7 @@ import { ToolPanel } from "@/components/ui/ToolPanel"
 import { BeforeAfter, Meter, ResultReveal } from "@/components/motion/primitives"
 import { usePlatform } from "@/platform/platform-context"
 import { PlatformError, toSafeErrorMessage } from "@/platform/errors"
-import { bytesToBase64 } from "@/platform/shared/files"
+import { bytesToBase64, maximumBridgeGeneratedFileBytes } from "@/platform/shared/files"
 import type { PickedFile } from "@/platform/contracts"
 import { blobBytes, base64ToBytes, decodeImage, encodeImage } from "./image-io"
 import {
@@ -138,6 +138,13 @@ export default function ImageCompressor() {
           format.mimeType,
           format.useQuality ? quality : undefined,
         )
+        if (blob.size > maximumBridgeGeneratedFileBytes) {
+          setStatus("")
+          setError(
+            "This output exceeds 5 MiB. Choose a smaller width or use JPEG at lower quality, then compress again.",
+          )
+          return
+        }
         const output = await blobBytes(blob)
         if (!active.current) return
         const savings = savingsPercent(picked.size, output.length)

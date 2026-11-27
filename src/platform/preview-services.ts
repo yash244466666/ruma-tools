@@ -2,6 +2,7 @@ import { Capacitor, registerPlugin } from "@capacitor/core"
 export const isAndroidTester = Capacitor.getPlatform() === "android"
 export const diagnostics = registerPlugin<{
   battery(): Promise<Record<string, string>>
+  storage(): Promise<{ available: number; free: number; total: number }>
   device(): Promise<Record<string, string>>
 }>("TesterDiagnostics")
 

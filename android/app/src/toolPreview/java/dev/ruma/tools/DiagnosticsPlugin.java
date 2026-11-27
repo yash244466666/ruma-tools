@@ -61,6 +61,15 @@ public class DiagnosticsPlugin extends Plugin {
         call.resolve(out);
     }
 
+    @PluginMethod public void storage(PluginCall call) {
+        StatFs volume = new StatFs(Environment.getDataDirectory().getPath());
+        JSObject result = new JSObject();
+        result.put("available",volume.getAvailableBytes());
+        result.put("free",volume.getFreeBytes());
+        result.put("total",volume.getTotalBytes());
+        call.resolve(result);
+    }
+
     @PluginMethod public void device(PluginCall call) {
         JSObject out=new JSObject();
         out.put("Model",Build.MANUFACTURER+" "+Build.MODEL);

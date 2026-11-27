@@ -19,7 +19,7 @@ test("creates and reopens a ZIP and saves the original bytes", async ({ page }) 
     "text/plain",
     Buffer.from("atlas sample"),
   )
-  const bytes = await readFile((await (await download).path())!)
+  const bytes = await readFile(await (await download).path())
   expect(await (await JSZip.loadAsync(bytes)).file("example.txt")?.async("text")).toBe(
     "atlas sample",
   )
@@ -27,7 +27,7 @@ test("creates and reopens a ZIP and saves the original bytes", async ({ page }) 
   await expect(page.getByText("example.txt", { exact: true })).toBeVisible()
   const output = page.waitForEvent("download")
   await page.getByRole("button", { name: /^Save file/ }).click()
-  expect((await readFile((await (await output).path())!)).toString()).toBe("atlas sample")
+  expect((await readFile(await (await output).path())).toString()).toBe("atlas sample")
 })
 test("lists a synthetic RAR4 and extracts its stored file", async ({ page }) => {
   await page.goto("/#/tool/archive-manager")
@@ -39,7 +39,7 @@ test("lists a synthetic RAR4 and extracts its stored file", async ({ page }) => 
   await expect(page.getByText("example.txt", { exact: true })).toBeVisible()
   const output = page.waitForEvent("download")
   await page.getByRole("button", { name: /^Save file/ }).click()
-  expect((await readFile((await (await output).path())!)).toString()).toBe("atlas sample")
+  expect((await readFile(await (await output).path())).toString()).toBe("atlas sample")
 })
 test("reads a photo QR and generates a corrected PDF and print sheet", async ({ page }) => {
   const bytes = await QRCode.toBuffer("offline test text")
@@ -54,7 +54,7 @@ test("reads a photo QR and generates a corrected PDF and print sheet", async ({ 
     await pick(page, "Choose photo", "page.png", "image/png", bytes)
     const output = page.waitForEvent("download")
     await page.getByRole("button", { name: button }).click()
-    const doc = await PDFDocument.load(await readFile((await (await output).path())!))
+    const doc = await PDFDocument.load(await readFile(await (await output).path()))
     expect(doc.getPageCount()).toBe(1)
     if (id === "id-photo") expect(doc.getPage(0).getWidth()).toBeCloseTo(595.28, 1)
   }

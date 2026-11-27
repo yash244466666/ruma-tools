@@ -251,10 +251,10 @@ export function CompassDial({
   interference: boolean
 }) {
   const needleRef = useRef<SVGGElement>(null)
-  const current = useRef(heading)
+  const current = useRef(-heading)
 
   useEffect(() => {
-    const delta = shortestAngleDelta(current.current, heading)
+    const delta = shortestAngleDelta(current.current, -heading)
     current.current += delta
     needleRef.current?.style.setProperty("transform", `rotate(${current.current}deg)`)
   }, [heading])
@@ -274,8 +274,8 @@ export function CompassDial({
         strokeWidth="2"
       />
       {Array.from({ length: 36 }, (_, index) => {
-        const angle = index * 10
-        const major = angle % 30 === 0
+        const angle = index * 10 - heading
+        const major = index % 3 === 0
         const outer = polar(120, 120, 104, angle - 90)
         const inner = polar(120, 120, major ? 92 : 98, angle - 90)
         return (
@@ -291,7 +291,7 @@ export function CompassDial({
         )
       })}
       {(["N", "E", "S", "W"] as const).map((label, index) => {
-        const point = polar(120, 120, 76, index * 90 - 90)
+        const point = polar(120, 120, 76, index * 90 - 90 - heading)
         return (
           <text
             fill={label === "N" ? "var(--text)" : "var(--text-secondary)"}
@@ -306,10 +306,11 @@ export function CompassDial({
           </text>
         )
       })}
+      <path fill="var(--text)" d="M114 7h12l-6 10z" />
       <g
         ref={needleRef}
         style={{
-          transform: `rotate(${heading}deg)`,
+          transform: `rotate(${-heading}deg)`,
           transformBox: "view-box",
           transformOrigin: "120px 120px",
         }}

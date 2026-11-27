@@ -24,7 +24,7 @@ public class ForegroundGpsPlugin extends Plugin implements LocationListener {
     }
     @PluginMethod public synchronized void start(PluginCall call){
         if(getContext().checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED){call.reject("Precise location required");return;}
-        if(!getActivity().hasWindowFocus()){call.reject("Open the tool to start GPS");return;}
+        if(!getActivity().getLifecycle().getCurrentState().isAtLeast(androidx.lifecycle.Lifecycle.State.STARTED)){call.reject("Open the tool to start GPS");return;}
         try{
             LocationManager lm=manager();
             if(lm==null||!lm.isProviderEnabled(LocationManager.GPS_PROVIDER)){call.reject("GPS disabled");return;}

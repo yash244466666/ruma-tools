@@ -6,8 +6,8 @@ const ARTIFACT_PATH = "android/app/build/outputs/apk/debug/app-debug.apk"
 const CDP_HOST = "http://127.0.0.1:9222"
 /**
  * The approved public version-1 scope (ADR 0026: the 33 tools of ADR 0023/0025 plus
- * the five permission-free sensor tools of ADR 0026; 38 tools). The catalog must list
- * exactly these, and only these are probed and counted.
+ * the five permission-free sensor tools of ADR 0026; 38 tools). Their full regression
+ * probes remain active in the tester APK alongside the ADR 0032 preview routes.
  *
  * The per-tool probes below for the 70 cut tools are deliberately retained in this file:
  * the ADR keeps every cut tool's source, pure logic, and tests in-tree so a reversal is a
@@ -63,8 +63,37 @@ const versionOneScope = new Set([
   "vibration-meter",
 ])
 
-/** Enabled tools the catalog must list; keep in step with the registry. */
-const enabledToolCount = versionOneScope.size
+/** Expected routes in the debug APK, independent of its rendered catalog. */
+const testerScope = new Set([
+  ...versionOneScope,
+  "appliance-cost",
+  "frame-spacing",
+  "materials-estimate",
+  "savings-goal",
+  "group-expenses",
+  "cooking-timers",
+  "movement-alarm",
+  "guitar-tuner",
+  "battery-info",
+  "device-info",
+  "file-manager",
+  "storage-analysis",
+  "storage-cleaner",
+  "archive-manager",
+  "ip-lookup",
+  "gps-speed",
+  "offline-location",
+  "parking-finder",
+  "walking-cadence",
+  "screen-ruler",
+  "packing-checklist",
+  "scan-to-pdf",
+  "id-photo",
+  "photo-overlay",
+  "photo-redaction",
+  "qr-photo-reader",
+  "magnifier",
+])
 
 /** @typedef {{ id: string, status: "PASS"|"FAIL"|"PENDING_PHYSICAL"|"INFO", detail: string }} Check */
 
@@ -501,9 +530,9 @@ async function phaseShell() {
   const cards = catalogIds.length
   record(
     "shell.catalogRendersAllEnabledTools",
-    cards === enabledToolCount &&
+    cards === testerScope.size &&
       new Set(catalogIds).size === cards &&
-      catalogIds.every((id) => versionOneScope.has(id))
+      catalogIds.every((id) => testerScope.has(id))
       ? "PASS"
       : "FAIL",
     `${cards} tool links reached through the atlas`,
