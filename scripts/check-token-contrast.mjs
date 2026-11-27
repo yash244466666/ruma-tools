@@ -71,6 +71,9 @@ function token(tokens, name) {
 
 /** @param {TokenMap} tokens @returns {ContrastPair[]} */
 const pairsFor = (tokens) => [
+  ["atlas heading", token(tokens, "--atlas-header-text"), token(tokens, "--atlas-header"), 4.5],
+  ["atlas caption", token(tokens, "--atlas-header-accent"), token(tokens, "--atlas-header"), 4.5],
+  ["atlas tile", token(tokens, "--text"), token(tokens, "--atlas-feature"), 4.5],
   ["body text", token(tokens, "--text"), token(tokens, "--background"), 4.5],
   ["panel text", token(tokens, "--text"), token(tokens, "--surface-raised"), 4.5],
   ["muted-surface text", token(tokens, "--text"), token(tokens, "--surface-muted"), 4.5],

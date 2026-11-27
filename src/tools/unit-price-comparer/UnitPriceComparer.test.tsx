@@ -33,6 +33,22 @@ function fillItem(
 }
 
 describe("UnitPriceComparer", () => {
+  it("totals purchases in cents and preserves the basket when switching views", () => {
+    renderTool()
+    fireEvent.click(screen.getByRole("button", { name: "Shopping basket" }))
+    fireEvent.change(screen.getByLabelText("Budget (optional)"), { target: { value: "10" } })
+    fireEvent.change(screen.getByLabelText("Item name (optional)"), { target: { value: "Rice" } })
+    fireEvent.change(screen.getByLabelText("Price per item"), { target: { value: "4.65" } })
+    fireEvent.click(screen.getByRole("button", { name: "Add to basket" }))
+    fireEvent.click(screen.getByRole("button", { name: "One more Rice" }))
+    expect(screen.getByRole("status")).toHaveTextContent("Budget left 0.70")
+    fireEvent.click(screen.getByRole("button", { name: "Compare prices" }))
+    fireEvent.click(screen.getByRole("button", { name: "Shopping basket" }))
+    expect(screen.getByRole("status")).toHaveTextContent("Total 9.30")
+    fireEvent.click(screen.getByRole("button", { name: "Remove Rice" }))
+    expect(screen.getByRole("status")).toHaveTextContent("Total 0.00")
+  })
+
   it("starts empty with an instructive status and no table", () => {
     renderTool()
     expect(screen.getByRole("status")).toHaveTextContent(/enter a price and a quantity/i)

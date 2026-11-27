@@ -1,9 +1,8 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/Button"
-import { CopyButton } from "@/components/ui/CopyButton"
+import { GeneratedTextFile } from "@/components/ui/GeneratedTextFile"
 import { Field } from "@/components/ui/Field"
 import { ToolPanel } from "@/components/ui/ToolPanel"
-import { ResultReveal } from "@/components/motion/primitives"
 import { usePlatform } from "@/platform/platform-context"
 import { buildIcsCalendar, formatIcsStamp, icsUidFromUuid } from "./ical"
 
@@ -20,7 +19,6 @@ export default function IcsGenerator() {
   const [allDay, setAllDay] = useState(false)
   const [output, setOutput] = useState("")
   const [error, setError] = useState("")
-  const [status, setStatus] = useState("")
 
   function generate() {
     const result = buildIcsCalendar(
@@ -51,13 +49,18 @@ export default function IcsGenerator() {
     setAllDay(false)
     setOutput("")
     setError("")
-    setStatus("")
   }
 
   return (
     <div className="grid gap-4">
       <ToolPanel title="Event details">
-        <div className="grid gap-3">
+        <div
+          className="grid gap-3"
+          onChange={() => {
+            setOutput("")
+            setError("")
+          }}
+        >
           <Field
             error={error === "" ? undefined : error}
             hint="Escaping follows RFC 5545: backslash, semicolon, comma, and newlines in any field are safe."
@@ -176,26 +179,19 @@ export default function IcsGenerator() {
       </ToolPanel>
 
       {output !== "" ? (
-        <ToolPanel
-          title="Result"
-          action={<CopyButton label="Copy iCalendar" onStatus={setStatus} value={output} />}
-        >
-          <ResultReveal token={output}>
-            <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-2xl bg-[var(--surface-muted)] p-3 font-mono text-xs leading-5">
-              {output}
-            </pre>
-          </ResultReveal>
-        </ToolPanel>
+        <GeneratedTextFile
+          key={output}
+          name="event.ics"
+          mimeType="text/calendar"
+          copyLabel="Copy iCalendar"
+          content={output}
+        />
       ) : null}
 
-      <p aria-live="polite" className="sr-only" role="status">
-        {status}
-      </p>
       <p className="text-xs leading-5 text-[var(--text-secondary)]">
         Times are floating local times: the calendar stores no timezone offset, so the event shows
-        at the same local clock time everywhere. Every generated event gets a fresh UID from the
-        platform's secure random source. Nothing is saved or uploaded; this tool has no network
-        access.
+        at the same local clock time everywhere. Save the .ics file to import this event into your
+        calendar.
       </p>
     </div>
   )

@@ -149,3 +149,7 @@ The mapping below is repository-wide, not scoped to the enabled set: it covers e
 | Date       | Tool/data | Upstream commit/path | Android change | Tests/oracle      | License/attribution | Upstream follow-up |
 | ---------- | --------- | -------------------- | -------------- | ----------------- | ------------------- | ------------------ |
 | YYYY-MM-DD | tool ID   | commit + paths       | summary        | fixture/reference | status              | issue/none         |
+
+### Tool Atlas tester utilities
+
+The utility screens, calculations, Android adapters, camera transforms and integration tests introduced in issue #250 were written for Ruma Tools. Archive creation reuses JSZip 3.10.1 and print sheets reuse pdf-lib 1.17.1. The preview bundles jsQR 1.4.0 (Apache-2.0) and @wasm-zoo/libarchive 0.3.3 (libarchive 3.8.11 in WebAssembly). Both run locally. Package license files and the decoder notices accompany the preview build.

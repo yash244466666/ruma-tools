@@ -25,11 +25,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
+import org.json.JSONTokener;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -131,12 +133,47 @@ public final class DocumentAndShareInstrumentedTest {
             WebViewTestHarness.clickButton(scenario, "Save PNG");
             WebViewTestHarness.waitForText(scenario, "QR image saved.");
 
-            intended(createDocumentRequest());
+            intended(createDocumentRequest("qr-code.png", "image/png"));
             byte[] saved = readUri(TestDocumentsProvider.OUTPUT_URI, testContext());
             assertTrue("Save As output must contain a non-empty PNG.", saved.length > PNG_SIGNATURE.length);
             assertArrayEquals(PNG_SIGNATURE, Arrays.copyOf(saved, PNG_SIGNATURE.length));
             waitForSaveCacheToEmpty();
         }
+    }
+
+    @Test
+    public void calendarAndContactSaveTheExactPreviewBytes() throws Exception {
+        Intent destination = new Intent()
+            .setData(TestDocumentsProvider.OUTPUT_URI)
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        intending(hasAction(Intent.ACTION_CREATE_DOCUMENT)).respondWith(
+            new Instrumentation.ActivityResult(Activity.RESULT_OK, destination)
+        );
+        try (ActivityScenario<MainActivity> scenario = WebViewTestHarness.launch()) {
+            WebViewTestHarness.navigate(scenario, "#/tool/ical-generator");
+            WebViewTestHarness.setValue(scenario, "#ics-title", "Synthetic event");
+            WebViewTestHarness.setValue(scenario, "#ics-start-date", "2026-11-27");
+            WebViewTestHarness.setValue(scenario, "#ics-end-date", "2026-11-27");
+            WebViewTestHarness.clickButton(scenario, "Generate .ics");
+            assertSavedText(scenario, "event.ics", "text/calendar", "BEGIN:VCALENDAR");
+
+            WebViewTestHarness.navigate(scenario, "#/tool/vcard-generator");
+            WebViewTestHarness.setValue(scenario, "#vcard-first-name", "Synthetic");
+            WebViewTestHarness.clickButton(scenario, "Generate vCard");
+            assertSavedText(scenario, "contact.vcf", "text/vcard", "BEGIN:VCARD");
+        }
+    }
+
+    private void assertSavedText(ActivityScenario<MainActivity> scenario, String name, String mime, String prefix)
+        throws Exception {
+        WebViewTestHarness.waitForText(scenario, prefix);
+        String encoded = WebViewTestHarness.evaluateRaw(scenario, "document.querySelector('pre').textContent");
+        String preview = (String) new JSONTokener(encoded).nextValue();
+        WebViewTestHarness.clickButton(scenario, "Save " + name.substring(name.lastIndexOf('.')) + " file");
+        WebViewTestHarness.waitForText(scenario, "File saved.");
+        intended(createDocumentRequest(name, mime));
+        assertArrayEquals(preview.getBytes(StandardCharsets.UTF_8), readUri(TestDocumentsProvider.OUTPUT_URI, testContext()));
+        waitForSaveCacheToEmpty();
     }
 
     @Test
@@ -200,7 +237,7 @@ public final class DocumentAndShareInstrumentedTest {
         };
     }
 
-    private Matcher<Intent> createDocumentRequest() {
+    private Matcher<Intent> createDocumentRequest(String name, String mime) {
         return new TypeSafeDiagnosingMatcher<>() {
             @Override
             protected boolean matchesSafely(Intent intent, Description mismatch) {
@@ -208,17 +245,17 @@ public final class DocumentAndShareInstrumentedTest {
                 boolean valid =
                     Intent.ACTION_CREATE_DOCUMENT.equals(intent.getAction()) &&
                     intent.hasCategory(Intent.CATEGORY_OPENABLE) &&
-                    "image/png".equals(intent.getType()) &&
-                    "qr-code.png".equals(intent.getStringExtra(Intent.EXTRA_TITLE)) &&
+                    mime.equals(intent.getType()) &&
+                    name.equals(intent.getStringExtra(Intent.EXTRA_TITLE)) &&
                     (grants & Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0 &&
                     (grants & Intent.FLAG_GRANT_WRITE_URI_PERMISSION) != 0;
-                if (!valid) mismatch.appendText("was not the scoped PNG Save As request");
+                if (!valid) mismatch.appendText("was not the scoped Save As request for " + name);
                 return valid;
             }
 
             @Override
             public void describeTo(Description description) {
-                description.appendText("scoped ACTION_CREATE_DOCUMENT PNG request");
+                description.appendText("scoped ACTION_CREATE_DOCUMENT request for " + name);
             }
         };
     }

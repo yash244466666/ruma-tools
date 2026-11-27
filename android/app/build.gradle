@@ -16,6 +16,14 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    sourceSets {
+        debug.assets.srcDir "src/toolPreview/assets"
+        debug.manifest.srcFile "src/toolPreview/AndroidManifest.xml"
+        internal.manifest.srcFile "src/toolPreview/AndroidManifest.xml"
+        debug.java.srcDir "src/toolPreview/java"
+        internal.java.srcDir "src/toolPreview/java"
+        internal.assets.srcDir "src/toolPreview/assets"
+    }
     buildTypes {
         debug {
             applicationIdSuffix ".debug"

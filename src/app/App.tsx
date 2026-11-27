@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { AppNavigation } from "@/app/AppNavigation"
 import { CatalogScreen } from "@/app/CatalogScreen"
-import { parseHash, type AppRoute } from "@/app/routing"
+import { parseHash, routeHref } from "@/app/routing"
 import { SettingsScreen } from "@/app/SettingsScreen"
 import { ToolScreen } from "@/app/ToolScreen"
 import { useNetworkState, useStoredStringArray, useThemePreference } from "@/app/useAppState"
@@ -22,9 +22,33 @@ function joinHumanly(items: string[]) {
   return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`
 }
 
+function catalogReturnHref(hash: unknown): string {
+  if (typeof hash !== "string" || !hash.startsWith("#/")) return "#/"
+  const route = parseHash(hash)
+  return route.screen === "catalog" || route.screen === "favorites" || route.screen === "recent"
+    ? routeHref(route)
+    : "#/"
+}
+
+function historyParent(): unknown {
+  const state: unknown = window.history.state
+  return state && typeof state === "object" && "atlasParent" in state
+    ? state.atlasParent
+    : undefined
+}
+
 export function App() {
   const platform = usePlatform()
-  const [route, setRoute] = useState<AppRoute>(() => parseHash())
+  const [route, setRoute] = useState(() => parseHash())
+  const [toolBackHref, setToolBackHref] = useState(() => catalogReturnHref(historyParent()))
+  // Search text belongs to a list in this session and survives a trip into a tool.
+  const [queries, setQueries] = useState<Record<string, string>>({})
+  const listHref = routeHref(route)
+  const searchProps = {
+    query: queries[listHref] ?? "",
+    onQueryChange: (query: string) =>
+      setQueries((previous) => ({ ...previous, [listHref]: query })),
+  }
   const [favorites, setFavorites] = useStoredStringArray("favorites")
   const [recents, setRecents, recentsLoaded] = useStoredStringArray("recents")
   const [theme, setTheme] = useThemePreference()
@@ -32,7 +56,17 @@ export function App() {
   const [announcement, setAnnouncement] = useState("")
 
   useEffect(() => {
-    const updateRoute = () => setRoute(parseHash())
+    const updateRoute = (event: HashChangeEvent) => {
+      const next = parseHash()
+      if (next.screen === "tool") {
+        const parent = catalogReturnHref(
+          historyParent() ?? (event.oldURL ? new URL(event.oldURL).hash : ""),
+        )
+        window.history.replaceState({ ...window.history.state, atlasParent: parent }, "")
+        setToolBackHref(parent)
+      }
+      setRoute(next)
+    }
     window.addEventListener("hashchange", updateRoute)
     return () => window.removeEventListener("hashchange", updateRoute)
   }, [])
@@ -64,17 +98,22 @@ export function App() {
   }, [setRecents])
 
   async function clearPreferences() {
-    const [note, timerState, cachedRates, storedBookmarks] = await Promise.all([
+    const [note, timerState, cachedRates, storedBookmarks, packing, parking] = await Promise.all([
       platform.preferences.get(notesStorageKey),
       platform.preferences.get(pomodoroStorageKey),
       platform.preferences.get(currencyStorageKey),
       platform.preferences.get<{ bookmarks?: unknown }>(bookmarksStorageKey),
+      platform.preferences.get<unknown>("packing-items-v1"),
+      platform.preferences.get<unknown>("parking-spot-v1"),
     ])
     const removedClasses = [
       pluralize(favorites.length, "favorite", "favorites"),
       pluralize(recents.length, "recent tool", "recent tools"),
       "your theme preference",
     ]
+    if (Array.isArray(packing) && packing.length)
+      removedClasses.push(pluralize(packing.length, "packing item", "packing items"))
+    if (parking) removedClasses.push("your saved parking spot")
     if (note) removedClasses.push("your saved scratchpad note")
     if (storedBookmarks) {
       const bookmarkCount = Array.isArray(storedBookmarks.bookmarks)
@@ -98,13 +137,27 @@ export function App() {
 
   return (
     <div className="app-frame">
-      <a className="skip-link" href="#main-content">
+      <a
+        className="skip-link"
+        href="#main-content"
+        onClick={(event) => {
+          event.preventDefault()
+          document.getElementById("main-content")?.focus()
+        }}
+      >
         Skip to content
       </a>
       <AppNavigation favoriteCount={favorites.length} route={route} />
-      <main id="main-content">
+      <main
+        tabIndex={-1}
+        id="main-content"
+        data-back-href={route.screen === "tool" ? toolBackHref : "#/"}
+      >
         {route.screen === "catalog" ? (
           <CatalogScreen
+            key={listHref}
+            groupId={route.groupId}
+            {...searchProps}
             favorites={favorites}
             network={network}
             onToggleFavorite={toggleFavorite}
@@ -112,6 +165,7 @@ export function App() {
         ) : null}
         {route.screen === "favorites" ? (
           <CatalogScreen
+            {...searchProps}
             favorites={favorites}
             mode="favorites"
             network={network}
@@ -120,6 +174,7 @@ export function App() {
         ) : null}
         {route.screen === "recent" ? (
           <CatalogScreen
+            {...searchProps}
             favorites={favorites}
             mode="recent"
             network={network}
@@ -137,7 +192,13 @@ export function App() {
           />
         ) : null}
         {route.screen === "tool" ? (
-          <ToolScreen onOpened={recordRecent} toolId={route.toolId} />
+          <ToolScreen
+            onOpened={recordRecent}
+            toolId={route.toolId}
+            backHref={toolBackHref}
+            favorite={favorites.includes(route.toolId)}
+            onToggleFavorite={toggleFavorite}
+          />
         ) : null}
       </main>
       <p aria-live="polite" className="sr-only">

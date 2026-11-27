@@ -13,7 +13,7 @@ function renderTool() {
 describe("RecipeScaler interactions", () => {
   it("scales the typed ingredient list for the requested servings", () => {
     renderTool()
-    fireEvent.change(screen.getByLabelText("Desired servings"), { target: { value: "8" } })
+    fireEvent.change(screen.getByLabelText("I want to serve"), { target: { value: "8" } })
     fireEvent.change(screen.getByLabelText("Ingredients"), {
       target: { value: "2 cups flour\n1 1/2 tsp salt\nsalt to taste" },
     })
@@ -24,6 +24,15 @@ describe("RecipeScaler interactions", () => {
     expect(within(list).getByText("salt to taste")).toBeInTheDocument()
     expect(screen.getByText("×2")).toBeInTheDocument()
     expect(screen.getByText(/1 line without a quantity left unchanged/)).toBeInTheDocument()
+  })
+
+  it("walks through doubling a two-serving recipe without typing", () => {
+    renderTool()
+    fireEvent.click(screen.getByRole("button", { name: /Try a rice recipe/ }))
+    expect(screen.getByRole("heading", { name: "Ingredients for 4 servings" })).toBeVisible()
+    expect(
+      within(screen.getByRole("list", { name: "Scaled list" })).getByText("200 g rice"),
+    ).toBeVisible()
   })
 
   it("keeps fractional text unchanged when the serving count is unchanged", () => {

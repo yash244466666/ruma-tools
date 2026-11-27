@@ -26,6 +26,8 @@ Do not use theme-specific raw hex values in tool components. Add a semantic toke
 
 ## Layout
 
+Tool Atlas uses a blue grid header and seven category tiles. Money & math spans the compact grid. Opening a category shows compact tool rows. Search in the catalog covers all enabled tools, and the tool count opens the complete directory. Each tool has an explicit offline or provider label and a favorite control. [Tool Atlas decision](decisions/0031-tool-atlas.md)
+
 - Compact: bottom navigation, single-column tools, 16 px minimum horizontal inset.
 - Medium: responsive card grid and selectively split tool panels.
 - Expanded: 256 px navigation rail plus bounded content width.

@@ -42,10 +42,26 @@ public final class BundledAppInstrumentedTest {
                 )
             );
 
-            WebViewTestHarness.navigate(scenario, "#/tool/unit-converter");
+            WebViewTestHarness.navigate(scenario, "#/category/money-math");
             WebViewTestHarness.waitForText(scenario, "Unit Converter");
+            WebViewTestHarness.navigate(scenario, "#/tool/unit-converter");
+            WebViewTestHarness.waitForCondition(scenario, "document.querySelector('h1')?.textContent === 'Unit Converter'");
             UiDevice.getInstance(InstrumentationRegistry.getInstrumentation()).pressBack();
-            WebViewTestHarness.waitForText(scenario, "Useful tools, ready when you are");
+            WebViewTestHarness.waitForCondition(scenario, "location.hash === '#/category/money-math'");
+            UiDevice.getInstance(InstrumentationRegistry.getInstrumentation()).pressBack();
+            WebViewTestHarness.waitForText(scenario, "Tool atlas");
+        }
+    }
+
+    @Test
+    public void testerApkReadsRealBatteryAndCameraCharacteristics() {
+        try (ActivityScenario<MainActivity> scenario = WebViewTestHarness.launch()) {
+            WebViewTestHarness.navigate(scenario, "#/tool/battery-info");
+            WebViewTestHarness.waitForText(scenario, "Power source");
+            WebViewTestHarness.waitForText(scenario, "Reported health");
+            WebViewTestHarness.navigate(scenario, "#/tool/device-info");
+            WebViewTestHarness.waitForText(scenario, "RAM available / total");
+            WebViewTestHarness.waitForText(scenario, "Reported sensors");
         }
     }
 
@@ -75,7 +91,7 @@ public final class BundledAppInstrumentedTest {
                 }
             });
             WebViewTestHarness.navigate(scenario, "#/settings");
-            WebViewTestHarness.waitForText(scenario, "Your app, your device");
+            WebViewTestHarness.waitForCondition(scenario, "document.querySelector('h1')?.textContent === 'Settings'");
             WebViewTestHarness.clickButton(scenario, "Dark");
             WebViewTestHarness.waitForCondition(
                 scenario,

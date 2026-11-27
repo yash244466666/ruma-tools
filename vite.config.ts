@@ -1,4 +1,5 @@
 import path from "node:path"
+import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
@@ -165,8 +166,60 @@ function pdfWorkerPolyfill(): Plugin {
   }
 }
 
+function previewArchiveAssets(): Plugin {
+  const prefix = "archive-codec/"
+  const base = path.join(rootDirectory, "node_modules/@wasm-zoo/libarchive")
+  function assets() {
+    const entries = new Map<string, Buffer | string>()
+    entries.set(
+      "core.mjs",
+      readFileSync(path.join(base, "bsdtar-core.js"), "utf8") +
+        "\nexport default createLibarchiveCore;\n",
+    )
+    entries.set("core.wasm", readFileSync(path.join(base, "bsdtar-core.wasm")))
+    const notices = [
+      "LICENSE",
+      "LICENSE.wasm-zoo.txt",
+      "LICENSES/libarchive-COPYING",
+      "LICENSES/zlib-LICENSE.txt",
+      "LICENSES/bzip2-LICENSE.txt",
+      "LICENSES/Emscripten-toolchain.txt",
+    ].map((name) => name + "\n" + readFileSync(path.join(base, name), "utf8"))
+    notices.push(
+      "jsQR 1.4.0\n" + readFileSync(path.join(rootDirectory, "node_modules/jsqr/LICENSE"), "utf8"),
+    )
+    entries.set("NOTICES.txt", notices.join("\n\n"))
+    return entries
+  }
+  return {
+    name: "bundled-preview-archive-reader",
+    apply: (_config, env) => ["tool-preview", "development"].includes(env.mode),
+    generateBundle() {
+      for (const [name, source] of assets())
+        this.emitFile({ type: "asset", fileName: prefix + name, source })
+    },
+    configureServer(server) {
+      const files = assets()
+      server.middlewares.use("/archive-codec", (req, res, next) => {
+        const name = req.url?.slice(1) ?? ""
+        const file = files.get(name)
+        if (!file) return next()
+        res.setHeader(
+          "Content-Type",
+          name.endsWith("wasm")
+            ? "application/wasm"
+            : name.endsWith("mjs")
+              ? "text/javascript"
+              : "text/plain",
+        )
+        res.end(file)
+      })
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [react(), tailwindcss(), pdfWorkerPolyfill()],
+  plugins: [react(), tailwindcss(), pdfWorkerPolyfill(), previewArchiveAssets()],
   resolve: {
     alias: {
       "@": path.resolve(rootDirectory, "src"),

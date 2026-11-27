@@ -47,11 +47,21 @@ it("shows tilt, calibrates zero, and reports level", async () => {
   )
   expect(screen.getByTestId("level-state")).toHaveTextContent("Tilted")
   expect(screen.getByText(/Roll 45.0°/)).toBeVisible()
+  expect(screen.getByRole("button", { name: "Set zero" })).toBeDisabled()
+  act(() => {
+    for (let i = 1; i <= 12; i++)
+      sensor.emit?.({
+        kind: "accelerometer",
+        timestampMs: 1 + i * 50,
+        values: [6.9367, 0, 6.9367],
+        accuracy: 3,
+      })
+  })
   fireEvent.click(screen.getByRole("button", { name: "Set zero" }))
   act(() =>
     sensor.emit?.({
       kind: "accelerometer",
-      timestampMs: 2,
+      timestampMs: 660,
       values: [6.9367, 0, 6.9367],
       accuracy: 3,
     }),

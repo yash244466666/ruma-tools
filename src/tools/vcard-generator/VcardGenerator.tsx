@@ -1,9 +1,8 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/Button"
-import { CopyButton } from "@/components/ui/CopyButton"
+import { GeneratedTextFile } from "@/components/ui/GeneratedTextFile"
 import { Field } from "@/components/ui/Field"
 import { ToolPanel } from "@/components/ui/ToolPanel"
-import { ResultReveal } from "@/components/motion/primitives"
 import { buildVcard } from "./vcard"
 
 export default function VcardGenerator() {
@@ -16,7 +15,6 @@ export default function VcardGenerator() {
   const [address, setAddress] = useState("")
   const [output, setOutput] = useState("")
   const [error, setError] = useState("")
-  const [status, setStatus] = useState("")
 
   function generate() {
     const result = buildVcard({
@@ -47,13 +45,18 @@ export default function VcardGenerator() {
     setAddress("")
     setOutput("")
     setError("")
-    setStatus("")
   }
 
   return (
     <div className="grid gap-4">
       <ToolPanel title="Contact details">
-        <div className="grid gap-3">
+        <div
+          className="grid gap-3"
+          onChange={() => {
+            setOutput("")
+            setError("")
+          }}
+        >
           <Field
             error={error === "" ? undefined : error}
             hint="At least one name is required. Escaping follows RFC 2426: semicolons, commas, backslashes, and newlines are safe."
@@ -136,24 +139,17 @@ export default function VcardGenerator() {
       </ToolPanel>
 
       {output !== "" ? (
-        <ToolPanel
-          title="Result"
-          action={<CopyButton label="Copy vCard" onStatus={setStatus} value={output} />}
-        >
-          <ResultReveal token={output}>
-            <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-2xl bg-[var(--surface-muted)] p-3 font-mono text-xs leading-5">
-              {output}
-            </pre>
-          </ResultReveal>
-        </ToolPanel>
+        <GeneratedTextFile
+          key={output}
+          name="contact.vcf"
+          mimeType="text/vcard"
+          copyLabel="Copy vCard"
+          content={output}
+        />
       ) : null}
 
-      <p aria-live="polite" className="sr-only" role="status">
-        {status}
-      </p>
       <p className="text-xs leading-5 text-[var(--text-secondary)]">
-        The card copies to the clipboard as plain text; save it with a `.vcf` extension and any
-        contact app can import it. Nothing is saved or uploaded; this tool has no network access.
+        Save the .vcf file to import this card into your contacts.
       </p>
     </div>
   )

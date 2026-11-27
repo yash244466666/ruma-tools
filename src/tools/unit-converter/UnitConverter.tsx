@@ -1,8 +1,7 @@
-import { ArrowDownUp } from "lucide-react"
+import { ArrowLeftRight } from "lucide-react"
 import { useMemo, useState } from "react"
 import { Button } from "@/components/ui/Button"
 import { Field } from "@/components/ui/Field"
-import { ToolPanel } from "@/components/ui/ToolPanel"
 import { ResultReveal } from "@/components/motion/primitives"
 import {
   convertUnit,
@@ -20,17 +19,23 @@ export default function UnitConverter() {
   const [swapId, setSwapId] = useState(0)
 
   const categoryUnits = units[category]
-  const numericValue = Number(value)
+  const numericValue = value.trim() ? Number(value) : NaN
   const result = useMemo(
     () => formatConvertedValue(convertUnit(numericValue, fromUnit, toUnit, category)),
     [category, fromUnit, numericValue, toUnit],
   )
+  const unitOptions = categoryUnits.map((unit) => (
+    <option key={unit.id} value={unit.id}>
+      {unit.label} ({unit.symbol})
+    </option>
+  ))
+  const destinationSymbol = categoryUnits.find((unit) => unit.id === toUnit)?.symbol
 
   function changeCategory(next: UnitCategoryId) {
     const nextUnits = units[next]
     setCategory(next)
     setFromUnit(nextUnits[0]?.id ?? "")
-    setToUnit(nextUnits[1]?.id ?? nextUnits[0]?.id ?? "")
+    setToUnit(nextUnits[1]?.id ?? "")
   }
 
   function swap() {
@@ -41,88 +46,74 @@ export default function UnitConverter() {
 
   return (
     <div className="grid gap-4">
-      <Field htmlFor="unit-category" label="Measurement type">
-        <select
-          className="app-input"
-          id="unit-category"
-          onChange={(event) => changeCategory(event.target.value as UnitCategoryId)}
-          value={category}
-        >
-          {unitCategories.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.label}
-            </option>
-          ))}
-        </select>
-      </Field>
-
-      <ToolPanel>
-        <div className="grid gap-4 sm:grid-cols-[1fr_auto_1fr] sm:items-end">
-          <Field htmlFor="from-value" label="From">
-            <div className="grid gap-2">
-              <input
-                className="app-input font-mono"
-                id="from-value"
-                inputMode="decimal"
-                onChange={(event) => setValue(event.target.value)}
-                type="number"
-                value={value}
-              />
-              <select
-                aria-label="Source unit"
-                className="app-input"
-                onChange={(event) => setFromUnit(event.target.value)}
-                value={fromUnit}
-              >
-                {categoryUnits.map((unit) => (
-                  <option key={unit.id} value={unit.id}>
-                    {unit.label} ({unit.symbol})
-                  </option>
-                ))}
-              </select>
-            </div>
-          </Field>
-
-          <Button
-            aria-label="Swap units"
-            className="self-center sm:mb-1"
-            onClick={swap}
-            variant="secondary"
+      <div className="atlas-converter-controls">
+        <Field htmlFor="unit-category" label="Measurement type">
+          <select
+            className="app-input"
+            id="unit-category"
+            onChange={(event) => changeCategory(event.target.value as UnitCategoryId)}
+            value={category}
           >
-            <ArrowDownUp
-              aria-hidden="true"
-              className="transition-transform duration-[var(--motion-base)]"
-              size={19}
-              style={{ transform: `rotate(${swapId * 180}deg)` }}
-            />
-            <span className="sm:hidden">Swap units</span>
-          </Button>
-
-          <Field htmlFor="to-value" label="To">
-            <div className="grid gap-2">
-              <ResultReveal
-                className="app-input block min-h-12 overflow-x-auto font-mono"
-                token={result}
-              >
-                <output id="to-value">{result || "—"}</output>
-              </ResultReveal>
-              <select
-                aria-label="Destination unit"
-                className="app-input"
-                onChange={(event) => setToUnit(event.target.value)}
-                value={toUnit}
-              >
-                {categoryUnits.map((unit) => (
-                  <option key={unit.id} value={unit.id}>
-                    {unit.label} ({unit.symbol})
-                  </option>
-                ))}
-              </select>
-            </div>
+            {unitCategories.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Button aria-label="Swap units" onClick={swap} variant="quiet">
+          <ArrowLeftRight
+            aria-hidden="true"
+            className="transition-transform duration-[var(--motion-base)]"
+            size={19}
+            style={{ transform: `rotate(${swapId * 180}deg)` }}
+          />
+          Swap
+        </Button>
+      </div>
+      <div className="atlas-conversion">
+        <section className="atlas-conversion-panel" aria-label="Convert from">
+          <Field htmlFor="from-unit" label="Source unit">
+            <select
+              className="app-input"
+              id="from-unit"
+              onChange={(event) => setFromUnit(event.target.value)}
+              value={fromUnit}
+            >
+              {unitOptions}
+            </select>
           </Field>
-        </div>
-      </ToolPanel>
-
+          <Field htmlFor="from-value" label="Value">
+            <input
+              className="app-input atlas-numeric-input"
+              id="from-value"
+              inputMode="decimal"
+              onChange={(event) => setValue(event.target.value)}
+              step="any"
+              type="number"
+              value={value}
+            />
+          </Field>
+        </section>
+        <section className="atlas-conversion-panel atlas-destination" aria-label="Convert to">
+          <Field htmlFor="to-unit" label="Destination unit">
+            <select
+              className="app-input"
+              id="to-unit"
+              onChange={(event) => setToUnit(event.target.value)}
+              value={toUnit}
+            >
+              {unitOptions}
+            </select>
+          </Field>
+          <ResultReveal className="atlas-converted-value" token={result}>
+            <output aria-label="Converted value" id="to-value">
+              <span>{result || "—"}</span>
+              {result && <span className="atlas-result-unit"> {destinationSymbol}</span>}
+            </output>
+          </ResultReveal>
+        </section>
+      </div>
       <p className="text-sm leading-6 text-[var(--text-secondary)]">
         Digital data uses binary multiples: 1 KB = 1,024 bytes. Months and years are intentionally
         excluded from duration conversion because their lengths vary.

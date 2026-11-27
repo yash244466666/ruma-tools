@@ -1,3 +1,4 @@
+import { atlasGroups } from "@/tools/atlas"
 import { tools } from "@/tools/registry"
 
 /**
@@ -57,6 +58,13 @@ const approvedVersionOneScope = [
 ] as const
 
 describe("tool registry", () => {
+  it("places every enabled tool in exactly one of the seven atlas groups", () => {
+    const grouped = atlasGroups.flatMap((group) => group.toolIds)
+    expect([...grouped].sort()).toEqual([...approvedVersionOneScope].sort())
+    expect(atlasGroups.map((group) => group.toolIds.length)).toEqual([11, 7, 5, 4, 2, 4, 5])
+    expect(new Set(atlasGroups.map((group) => group.id)).size).toBe(7)
+  })
+
   it("has stable unique identifiers", () => {
     const ids = tools.map((tool) => tool.id)
     expect(new Set(ids).size).toBe(ids.length)
