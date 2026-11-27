@@ -178,6 +178,7 @@ export type RecordingFinalReason =
   "user" | "duration-limit" | "size-limit" | "interrupted" | "failed"
 
 export interface RecordingStartOptions {
+  noiseSuppression?: boolean
   /** Hard stop and finalize at this duration; the service clamps to its own caps. */
   maximumDurationMs: number
   /** Hard stop and finalize at this accumulated encoded size. */
@@ -203,6 +204,7 @@ export interface RecordingResult {
 }
 
 export interface MicrophoneRecorderService {
+  supportsNoiseSuppression(): boolean
   /** Resolves once capture starts. Rejects with typed microphone errors. */
   start(options: RecordingStartOptions, callbacks?: RecordingCallbacks): Promise<void>
   /**

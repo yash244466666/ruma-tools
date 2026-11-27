@@ -40,8 +40,18 @@ function renderTool() {
 }
 
 describe("DiceRoller", () => {
+  it("rolls a visible pip die with a single tap", () => {
+    renderTool()
+    bytesMock.feed([5])
+    const button = screen.getByRole("button", { name: "Roll die" })
+    fireEvent.click(button)
+    expect(screen.getByText(/You rolled 6/)).toBeInTheDocument()
+    expect(button.querySelector(".ludo-cube")).toHaveAttribute("data-face", "6")
+  })
+
   it("starts with the default notation and an empty result", () => {
     renderTool()
+    fireEvent.click(screen.getByRole("button", { name: "Advanced dice" }))
     expect(screen.getByLabelText("Dice notation")).toHaveValue("2d6")
     expect(screen.getByRole("status")).toHaveTextContent(/enter notation and roll/i)
     expect(screen.queryByRole("table")).not.toBeInTheDocument()
@@ -49,6 +59,7 @@ describe("DiceRoller", () => {
 
   it("rolls via the platform random bytes and lists per-die results", () => {
     renderTool()
+    fireEvent.click(screen.getByRole("button", { name: "Advanced dice" }))
     // 2d6 consumes bytes 0,1 -> faces 1,2; total 3.
     bytesMock.feed([0, 1])
     fireEvent.click(screen.getByRole("button", { name: /roll$/i }))
@@ -60,6 +71,7 @@ describe("DiceRoller", () => {
 
   it("reports invalid notation with a visible alert", () => {
     renderTool()
+    fireEvent.click(screen.getByRole("button", { name: "Advanced dice" }))
     fireEvent.change(screen.getByLabelText("Dice notation"), { target: { value: "1d7" } })
     expect(screen.getByRole("alert")).toHaveTextContent(/not available/i)
     expect(screen.getByRole("status")).toHaveTextContent(/fix the notation/i)
@@ -68,6 +80,7 @@ describe("DiceRoller", () => {
 
   it("repeats the last roll from fresh random bytes", () => {
     renderTool()
+    fireEvent.click(screen.getByRole("button", { name: "Advanced dice" }))
     bytesMock.feed([0, 1])
     fireEvent.click(screen.getByRole("button", { name: /roll$/i }))
     expect(screen.getByRole("status")).toHaveTextContent(/total 3/i)

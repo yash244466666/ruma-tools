@@ -1,5 +1,7 @@
+import { getAtlasGroup } from "@/tools/atlas"
+
 export type AppRoute =
-  | { screen: "catalog" }
+  | { screen: "catalog"; groupId?: string }
   | { screen: "favorites" }
   | { screen: "recent" }
   | { screen: "settings" }
@@ -7,6 +9,10 @@ export type AppRoute =
 
 export function parseHash(hash = window.location.hash): AppRoute {
   const path = hash.replace(/^#\/?/, "").split("?")[0] ?? ""
+  if (path.startsWith("category/")) {
+    const groupId = path.slice("category/".length)
+    if (groupId === "all" || getAtlasGroup(groupId)) return { screen: "catalog", groupId }
+  }
   if (path === "favorites") return { screen: "favorites" }
   if (path === "recent") return { screen: "recent" }
   if (path === "settings") return { screen: "settings" }
@@ -20,7 +26,7 @@ export function parseHash(hash = window.location.hash): AppRoute {
 export function routeHref(route: AppRoute): string {
   switch (route.screen) {
     case "catalog":
-      return "#/"
+      return route.groupId ? `#/category/${route.groupId}` : "#/"
     case "favorites":
       return "#/favorites"
     case "recent":

@@ -14,7 +14,7 @@ import {
   maximumRangeSpan,
   parseList,
   parseRange,
-  pickFromList,
+  randomBelow,
   randomInteger,
   type RandomByteSource,
 } from "./random-picker"
@@ -37,23 +37,26 @@ export default function RandomPicker() {
   const [result, setResult] = useState("")
   const [error, setError] = useState("")
   const [status, setStatus] = useState("")
-  const [flipping, setFlipping] = useState(false)
+  const [animating, setAnimating] = useState(false)
+  const [drawCards, setDrawCards] = useState<string[]>([])
   const [flipId, setFlipId] = useState(0)
   const [pickId, setPickId] = useState(0)
-  const flipTimer = useRef<number | null>(null)
+  const drawTimer = useRef<number | null>(null)
 
   useEffect(() => {
     return () => {
-      if (flipTimer.current !== null) window.clearTimeout(flipTimer.current)
+      if (drawTimer.current !== null) window.clearTimeout(drawTimer.current)
     }
   }, [])
 
   function changeMode(next: PickMode) {
     setMode(next)
     setResult("")
+    setDrawCards([])
+    setStatus("")
     setError("")
-    setFlipping(false)
-    if (flipTimer.current !== null) window.clearTimeout(flipTimer.current)
+    setAnimating(false)
+    if (drawTimer.current !== null) window.clearTimeout(drawTimer.current)
   }
 
   function pick() {
@@ -67,7 +70,19 @@ export default function RandomPicker() {
           setError(parsed.message)
           return
         }
-        setResult(pickFromList(parsed.items, source))
+        const items = parsed.items
+        const winner = randomBelow(items.length, source)
+        setResult(items[winner]!)
+        setDrawCards(
+          Array.from(
+            { length: 6 },
+            (_, i) => items[(winner + items.length - ((5 - i) % items.length)) % items.length]!,
+          ),
+        )
+        if (!reducedMotion) {
+          setAnimating(true)
+          drawTimer.current = window.setTimeout(() => setAnimating(false), 600)
+        }
         setPickId((previous) => previous + 1)
         return
       }
@@ -76,11 +91,11 @@ export default function RandomPicker() {
         setResult(face)
         setFlipId((previous) => previous + 1)
         if (reducedMotion) {
-          setFlipping(false)
+          setAnimating(false)
         } else {
-          setFlipping(true)
-          if (flipTimer.current !== null) window.clearTimeout(flipTimer.current)
-          flipTimer.current = window.setTimeout(() => setFlipping(false), 600)
+          setAnimating(true)
+          if (drawTimer.current !== null) window.clearTimeout(drawTimer.current)
+          drawTimer.current = window.setTimeout(() => setAnimating(false), 600)
         }
         return
       }
@@ -130,9 +145,12 @@ export default function RandomPicker() {
             >
               <textarea
                 autoComplete="off"
-                className="app-input min-h-48 resize-y font-mono"
+                className="app-input min-h-28 resize-y"
                 id="random-picker-list"
-                onChange={(event) => setListText(event.target.value)}
+                onChange={(event) => {
+                  changeMode("list")
+                  setListText(event.target.value)
+                }}
                 placeholder={"Pizza\nSushi\nTacos"}
                 spellCheck={false}
                 value={listText}
@@ -168,7 +186,7 @@ export default function RandomPicker() {
           {mode === "coin" ? (
             <div className="grid gap-3">
               <CoinFlip
-                flipping={flipping}
+                flipping={animating}
                 flipId={flipId}
                 result={result === "Heads" || result === "Tails" ? result : null}
               />
@@ -179,8 +197,8 @@ export default function RandomPicker() {
           ) : null}
 
           <div>
-            <Button aria-busy={flipping || undefined} disabled={flipping} onClick={pick}>
-              {flipping ? "Flipping…" : actionLabel}
+            <Button aria-busy={animating || undefined} disabled={animating} onClick={pick}>
+              {animating ? (mode === "coin" ? "Flipping…" : "Drawing…") : actionLabel}
             </Button>
           </div>
 
@@ -194,22 +212,40 @@ export default function RandomPicker() {
 
       <ToolPanel
         action={
-          result ? (
+          result && !animating ? (
             <CopyButton label="Copy result" onStatus={setStatus} value={result} />
           ) : undefined
         }
-        title="Result"
+        title={mode === "list" ? "Selected item" : "Result"}
       >
-        {result ? (
-          <ResultReveal token={`${mode}-${pickId}-${flipping ? "flipping" : result}`}>
+        {mode === "list" && result ? (
+          <div className="picker-card-stage">
+            {animating && !reducedMotion ? (
+              <div className="picker-card-window" aria-hidden="true">
+                <div className="picker-card-strip" key={pickId}>
+                  {drawCards.map((item, i) => (
+                    <div className="picker-moving-card" key={i}>
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <output id="random-picker-result" className="picker-winner">
+                {result}
+              </output>
+            )}
+          </div>
+        ) : result ? (
+          <ResultReveal token={`${mode}-${pickId}-${animating ? "flipping" : result}`}>
             <output
               className="block break-words font-mono text-2xl font-semibold"
               id="random-picker-result"
             >
-              {flipping && mode === "coin" ? "Flipping…" : result}
+              {animating && mode === "coin" ? "Flipping…" : result}
             </output>
             <p aria-live="polite" className="sr-only" role="status">
-              {flipping && mode === "coin" ? "Flipping the coin." : `Result: ${result}.`}
+              {animating && mode === "coin" ? "Flipping the coin." : `Result: ${result}.`}
             </p>
           </ResultReveal>
         ) : (

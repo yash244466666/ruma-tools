@@ -86,13 +86,16 @@ class FakeAudioContext {
   close = vi.fn().mockResolvedValue(undefined)
 }
 
+const requestCapture = vi.fn()
+
 async function installFakes() {
+  requestCapture.mockReset().mockResolvedValue(fakeStream())
   FakeMediaRecorder.instances = []
   FakeMediaRecorder.supported = "audio/webm;codecs=opus"
   vi.stubGlobal("MediaRecorder", FakeMediaRecorder)
   vi.stubGlobal("AudioContext", FakeAudioContext)
   Object.defineProperty(navigator, "mediaDevices", {
-    value: { getUserMedia: vi.fn().mockResolvedValue(fakeStream()) },
+    value: { getUserMedia: requestCapture },
     configurable: true,
   })
 }
@@ -110,6 +113,21 @@ function newService() {
 }
 
 describe("microphone recorder policy helpers", () => {
+  it.each([true, false])(
+    "passes the selected noise suppression preference (%s) to capture",
+    async (enabled) => {
+      const { service } = newService()
+      await service.start({
+        noiseSuppression: enabled,
+        maximumDurationMs: 60000,
+        maximumBytes: 1024,
+      })
+      expect(requestCapture).toHaveBeenCalledWith({
+        audio: { noiseSuppression: { ideal: enabled } },
+      })
+      await service.cancel()
+    },
+  )
   it("accepts bounds at the contract caps and rejects anything beyond", () => {
     expect(() =>
       validateRecordingOptions({

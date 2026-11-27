@@ -30,11 +30,11 @@ describe("VcardGenerator interactions", () => {
     renderTool()
     fireEvent.click(screen.getByRole("button", { name: "Generate vCard" }))
     expect(screen.getByRole("alert")).toHaveTextContent("Enter at least a first or last name")
-    expect(screen.queryByText("Result")).toBeNull()
+    expect(screen.queryByRole("button", { name: "Save .vcf file" })).toBeNull()
 
     fireEvent.change(screen.getByLabelText("First name"), { target: { value: "Ada" } })
     fireEvent.click(screen.getByRole("button", { name: "Generate vCard" }))
-    expect(screen.getByText("Result")).toBeVisible()
+    expect(screen.getByRole("button", { name: "Save .vcf file" })).toBeVisible()
   })
 
   it("accepts only https website URLs", () => {
@@ -52,7 +52,7 @@ describe("VcardGenerator interactions", () => {
     fireEvent.change(screen.getByLabelText("First name"), { target: { value: "Ada" } })
     fireEvent.click(screen.getByRole("button", { name: "Generate vCard" }))
     fireEvent.click(screen.getByRole("button", { name: "Clear" }))
-    expect(screen.queryByText("Result")).toBeNull()
+    expect(screen.queryByRole("button", { name: "Save .vcf file" })).toBeNull()
     expect(screen.getByLabelText("First name")).toHaveValue("")
   })
 })

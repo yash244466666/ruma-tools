@@ -5,7 +5,7 @@ describe("Unit Converter interactions", () => {
   it("updates the result and swaps source and destination units", () => {
     render(<UnitConverter />)
 
-    fireEvent.change(screen.getByLabelText("From"), { target: { value: "2" } })
+    fireEvent.change(screen.getByLabelText("Value"), { target: { value: "2" } })
     expect(screen.getByText("0.002")).toBeVisible()
 
     fireEvent.click(screen.getByRole("button", { name: "Swap units" }))

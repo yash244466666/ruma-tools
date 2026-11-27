@@ -11,7 +11,8 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   webServer: {
-    command: "pnpm build && pnpm preview --host 127.0.0.1",
+    command:
+      "pnpm exec vite build --mode tool-preview --outDir android/app/build/preview-e2e && pnpm exec vite preview --host 127.0.0.1 --outDir android/app/build/preview-e2e",
     url: "http://127.0.0.1:4173",
     reuseExistingServer: !process.env.CI,
   },

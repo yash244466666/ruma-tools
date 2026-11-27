@@ -6,8 +6,8 @@ const ARTIFACT_PATH = "android/app/build/outputs/apk/debug/app-debug.apk"
 const CDP_HOST = "http://127.0.0.1:9222"
 /**
  * The approved public version-1 scope (ADR 0026: the 33 tools of ADR 0023/0025 plus
- * the five permission-free sensor tools of ADR 0026; 38 tools). The catalog must list
- * exactly these, and only these are probed and counted.
+ * the five permission-free sensor tools of ADR 0026; 38 tools). Their full regression
+ * probes remain active in the tester APK alongside the ADR 0032 preview routes.
  *
  * The per-tool probes below for the 70 cut tools are deliberately retained in this file:
  * the ADR keeps every cut tool's source, pure logic, and tests in-tree so a reversal is a
@@ -63,8 +63,37 @@ const versionOneScope = new Set([
   "vibration-meter",
 ])
 
-/** Enabled tools the catalog must list; keep in step with the registry. */
-const enabledToolCount = versionOneScope.size
+/** Expected routes in the debug APK, independent of its rendered catalog. */
+const testerScope = new Set([
+  ...versionOneScope,
+  "appliance-cost",
+  "frame-spacing",
+  "materials-estimate",
+  "savings-goal",
+  "group-expenses",
+  "cooking-timers",
+  "movement-alarm",
+  "guitar-tuner",
+  "battery-info",
+  "device-info",
+  "file-manager",
+  "storage-analysis",
+  "storage-cleaner",
+  "archive-manager",
+  "ip-lookup",
+  "gps-speed",
+  "offline-location",
+  "parking-finder",
+  "walking-cadence",
+  "screen-ruler",
+  "packing-checklist",
+  "scan-to-pdf",
+  "id-photo",
+  "photo-overlay",
+  "photo-redaction",
+  "qr-photo-reader",
+  "magnifier",
+])
 
 /** @typedef {{ id: string, status: "PASS"|"FAIL"|"PENDING_PHYSICAL"|"INFO", detail: string }} Check */
 
@@ -110,12 +139,12 @@ function backKeyIsDelivered() {
 /** @returns {string} */
 function currentDevtoolsSocket() {
   const pid = adb("pidof", PACKAGE)
-  if (!pid) throw new Error(`${PACKAGE} is not running.`)
+  if (!/^\d+$/.test(pid)) throw new Error(`Expected one running process for ${PACKAGE}.`)
+  const socket = `webview_devtools_remote_${pid}`
   const unix = adb("cat", `/proc/${pid}/net/unix`)
-  const names = [...unix.matchAll(/webview_devtools_remote_\d+/g)].map((match) => match[0])
-  const unique = [...new Set(names)]
-  const socket = unique.sort().at(-1)
-  if (!socket) throw new Error("WebView devtools socket not found; is WebView debugging enabled?")
+  if (!unix.split(/\s+/).includes(`@${socket}`)) {
+    throw new Error("Debug WebView socket for the tester APK is unavailable.")
+  }
   return socket
 }
 
@@ -490,18 +519,26 @@ async function phaseShell() {
     JSON.stringify(origin),
   )
 
-  const cards = /** @type {number} */ (
-    await page.evaluate("document.querySelectorAll(\"a[href^='#/tool/']\").length")
+  await page.waitFor("document.querySelectorAll('.atlas-tile').length === 7")
+  await page.evaluate(`document.querySelector("a[href='#/category/all']").click()`)
+  await page.waitFor(`document.querySelectorAll("a[href^='#/tool/']").length > 0`)
+  const catalogIds = /** @type {string[]} */ (
+    await page.evaluate(
+      `[...document.querySelectorAll("a[href^='#/tool/']")].map(link => link.hash.slice('#/tool/'.length))`,
+    )
   )
+  const cards = catalogIds.length
   record(
     "shell.catalogRendersAllEnabledTools",
-    cards >= enabledToolCount ? "PASS" : "FAIL",
-    `${cards} enabled tool cards`,
+    cards === testerScope.size &&
+      new Set(catalogIds).size === cards &&
+      catalogIds.every((id) => testerScope.has(id))
+      ? "PASS"
+      : "FAIL",
+    `${cards} tool links reached through the atlas`,
   )
-  if (cards < enabledToolCount) {
-    await page.navigate("#/")
-    await page.waitFor('document.querySelector(".search-field input") !== null', 15_000)
-  }
+  await page.navigate("#/")
+  await page.waitFor("document.querySelectorAll('.atlas-tile').length === 7")
 
   // A query that matches retained tools only; "hash" now matches nothing because Hash
   // Generator was cut by ADR 0023, which would read as a filter regression.
@@ -549,7 +586,7 @@ async function phaseShell() {
   }
 
   await page.navigate("#/settings")
-  await page.waitFor("document.body.innerText.includes('Your app, your device')")
+  await page.waitFor("document.querySelector('h1')?.textContent === 'Settings'")
   await page.clickButton("Light")
   await page.waitFor("document.documentElement.dataset.theme === 'light'")
   await page.clickButton("Dark")
@@ -1739,6 +1776,7 @@ async function phaseTools(page) {
       "dice-roller",
       "Dice Roller",
       async (p) => {
+        await p.clickButton("Advanced dice")
         await p.setValue("#dice-notation", "1d6 + 0")
         await p.clickButton("Roll")
         await p.waitFor("/^Total [1-6] from 1d6 \\+ 0\\.$/m.test(document.body.innerText)")

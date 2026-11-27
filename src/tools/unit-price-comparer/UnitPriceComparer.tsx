@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react"
 import { Button } from "@/components/ui/Button"
 import { Field } from "@/components/ui/Field"
+import { ShoppingBasket } from "./ShoppingBasket"
 import { ToolPanel } from "@/components/ui/ToolPanel"
 import {
   baseUnitFor,
@@ -28,6 +29,38 @@ const initialRows: RowState[] = Array.from({ length: maximumItems }, () => ({
 }))
 
 export default function UnitPriceComparer() {
+  const [basket, setBasket] = useState(false)
+  return (
+    <div className="grid gap-4">
+      <div aria-label="Shopping tools" role="group" className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          className="segment"
+          aria-pressed={!basket}
+          onClick={() => setBasket(false)}
+        >
+          Compare prices
+        </button>
+        <button
+          type="button"
+          className="segment"
+          aria-pressed={basket}
+          onClick={() => setBasket(true)}
+        >
+          Shopping basket
+        </button>
+      </div>
+      <div hidden={basket}>
+        <ComparePrices />
+      </div>
+      <div hidden={!basket}>
+        <ShoppingBasket />
+      </div>
+    </div>
+  )
+}
+
+function ComparePrices() {
   const [rows, setRows] = useState<RowState[]>(initialRows)
 
   // One parsed view of the rows feeds ranking, validation, and the error

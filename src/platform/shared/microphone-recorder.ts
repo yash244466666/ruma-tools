@@ -257,7 +257,12 @@ export function createMicrophoneRecorderService(
 
     let stream: MediaStream
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio:
+          options.noiseSuppression === undefined
+            ? true
+            : { noiseSuppression: { ideal: options.noiseSuppression } },
+      })
     } catch (error) {
       throw mapCaptureError(error)
     }
@@ -343,6 +348,9 @@ export function createMicrophoneRecorderService(
     })
 
   return {
+    supportsNoiseSuppression: () =>
+      typeof navigator !== "undefined" &&
+      navigator.mediaDevices?.getSupportedConstraints?.().noiseSuppression === true,
     async start(options, callbacks) {
       if (starting || (state && !state.finalized)) {
         throw new PlatformError("RECORDING_ALREADY_ACTIVE", "A recording is already in progress.")

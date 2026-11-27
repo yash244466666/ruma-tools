@@ -1,17 +1,10 @@
 import { useMemo, useState } from "react"
+import { Button } from "@/components/ui/Button"
 import { CopyButton } from "@/components/ui/CopyButton"
 import { Field } from "@/components/ui/Field"
 import { ToolPanel } from "@/components/ui/ToolPanel"
 import { ResultReveal } from "@/components/motion/primitives"
-import {
-  formatScaleFactor,
-  maximumIngredientLineChars,
-  maximumIngredients,
-  maximumRecipeChars,
-  maximumServings,
-  minimumServings,
-  scaleRecipe,
-} from "./recipe"
+import { formatScaleFactor, maximumIngredients, scaleRecipe } from "./recipe"
 
 export default function RecipeScaler() {
   const [originalServings, setOriginalServings] = useState("4")
@@ -29,13 +22,9 @@ export default function RecipeScaler() {
 
   return (
     <div className="grid gap-4">
-      <ToolPanel title="Scale a recipe">
+      <ToolPanel title="How many people are you cooking for?">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field
-            hint={`Between ${minimumServings} and ${maximumServings} servings.`}
-            htmlFor="recipe-original-servings"
-            label="Original servings"
-          >
+          <Field htmlFor="recipe-original-servings" label="My recipe serves">
             <input
               autoComplete="off"
               className="app-input font-mono"
@@ -45,11 +34,7 @@ export default function RecipeScaler() {
               value={originalServings}
             />
           </Field>
-          <Field
-            hint={`Between ${minimumServings} and ${maximumServings} servings.`}
-            htmlFor="recipe-desired-servings"
-            label="Desired servings"
-          >
+          <Field htmlFor="recipe-desired-servings" label="I want to serve">
             <input
               autoComplete="off"
               className="app-input font-mono"
@@ -60,15 +45,17 @@ export default function RecipeScaler() {
             />
           </Field>
         </div>
-
+      </ToolPanel>
+      <ToolPanel title="Original ingredients">
         <Field
-          hint={`One ingredient per line, up to ${maximumIngredients} lines. Metric units show decimals; kitchen units show fractions.`}
+          hint={`Start each line with the amount, such as “1 cup rice”. Enter up to ${maximumIngredients} lines.`}
           htmlFor="recipe-ingredients"
           label="Ingredients"
         >
           <textarea
             autoComplete="off"
-            className="app-input min-h-56 resize-y font-mono"
+            aria-describedby="recipe-ingredients-hint"
+            className="app-input min-h-28 resize-y"
             id="recipe-ingredients"
             onChange={(event) => setText(event.target.value)}
             placeholder={"2 cups flour\n1 1/2 tsp salt\n1/2 cup sugar\nsalt to taste"}
@@ -84,20 +71,29 @@ export default function RecipeScaler() {
         ) : null}
 
         <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            className="text-link"
-            onClick={() => {
-              setText("")
-              setStatus("")
-            }}
-            type="button"
-          >
-            Clear ingredients
-          </button>
-          <span className="text-xs text-[var(--text-secondary)]">
-            {maximumRecipeChars.toLocaleString("en-US")} character limit ·{" "}
-            {maximumIngredientLineChars} characters per line
-          </span>
+          {empty ? (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setOriginalServings("2")
+                setDesiredServings("4")
+                setText("100 g rice\n250 ml water\nsalt to taste")
+                setStatus("")
+              }}
+            >
+              Try a rice recipe for 2 → 4
+            </Button>
+          ) : (
+            <Button
+              variant="quiet"
+              onClick={() => {
+                setText("")
+                setStatus("")
+              }}
+            >
+              Clear ingredients
+            </Button>
+          )}
         </div>
       </ToolPanel>
 
@@ -107,17 +103,21 @@ export default function RecipeScaler() {
             <CopyButton label="Copy scaled ingredients" onStatus={setStatus} value={output} />
           ) : undefined
         }
-        title="Scaled ingredients"
+        title={
+          result?.status === "ok"
+            ? `Ingredients for ${desiredServings} servings`
+            : "Adjusted ingredients"
+        }
       >
         {empty ? (
           <p className="text-sm leading-6 text-[var(--text-secondary)]">
-            Add ingredient lines to see the scaled amounts. A line without a leading quantity, such
-            as “salt to taste”, is left unchanged.
+            Your adjusted amounts appear as you type.
           </p>
         ) : result?.status === "ok" ? (
           <>
             <p className="text-sm text-[var(--text-secondary)]">
-              Scale factor <strong>×{formatScaleFactor(result.factor)}</strong>
+              {originalServings} → {desiredServings} servings ·{" "}
+              <strong>×{formatScaleFactor(result.factor)}</strong>
               {result.unscaledCount > 0
                 ? ` · ${result.unscaledCount} line${result.unscaledCount === 1 ? "" : "s"} without a quantity left unchanged`
                 : ""}
@@ -125,7 +125,7 @@ export default function RecipeScaler() {
             <ResultReveal
               token={`${result.factor}-${result.lines.length}-${result.lines[0]?.scaled ?? ""}`}
             >
-              <ul className="mt-3 grid gap-1 font-mono text-sm leading-6" aria-label="Scaled list">
+              <ul className="mt-3 grid gap-2 text-base leading-6" aria-label="Scaled list">
                 {result.lines.map((line, index) => (
                   <li key={`${index}-${line.scaled}`}>{line.scaled}</li>
                 ))}
@@ -143,9 +143,8 @@ export default function RecipeScaler() {
         {status}
       </p>
       <p className="text-xs leading-5 text-[var(--text-secondary)]">
-        Scaling is arithmetic on this device; nothing is saved or uploaded. Units are kept as
-        written. Fraction display is approximate to the nearest common kitchen fraction, so check
-        large changes before cooking.
+        Quantities update automatically. Cooking times and temperatures stay with the original
+        recipe.
       </p>
     </div>
   )

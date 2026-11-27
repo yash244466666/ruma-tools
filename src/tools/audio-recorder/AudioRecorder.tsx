@@ -33,6 +33,8 @@ const maximumExportBytesNote =
 
 export default function AudioRecorder() {
   const { microphone, files, lifecycle } = usePlatform()
+  const [noiseSuppression, setNoiseSuppression] = useState(false)
+  const supportsNoise = microphone.supportsNoiseSuppression()
   const [phase, setPhase] = useState<Phase>("initial")
   const [errorState, setErrorState] = useState<{ kind: string; message: string } | null>(null)
   const [take, setTake] = useState<DoneTake | null>(null)
@@ -144,6 +146,7 @@ export default function AudioRecorder() {
     try {
       await microphone.start(
         {
+          noiseSuppression: supportsNoise ? noiseSuppression : undefined,
           maximumDurationMs: maximumRecordingDurationMs,
           maximumBytes: maximumRecordingBytes,
         },
@@ -209,7 +212,8 @@ export default function AudioRecorder() {
       }
       await files.saveAs({
         name: exportFileName("webm", take.takenAtMs),
-        mimeType: take.result.mimeType,
+        // Android document intents take a container MIME type without codec parameters.
+        mimeType: "audio/webm",
         data: bytesToBase64(new Uint8Array(take.result.data)),
         encoding: "base64",
       })
@@ -297,6 +301,17 @@ export default function AudioRecorder() {
               ? "Microphone recording is unavailable right now. Follow the recovery steps above."
               : "Microphone recording is offline-only. Nothing is stored or sent anywhere.")}
         </p>
+        {phase === "initial" && (
+          <label className="flex min-h-12 items-center justify-center gap-2">
+            <input
+              type="checkbox"
+              checked={noiseSuppression}
+              disabled={!supportsNoise}
+              onChange={(e) => setNoiseSuppression(e.target.checked)}
+            />
+            Reduce background noise{!supportsNoise && " (unavailable on this device)"}
+          </label>
+        )}
         <div className="mt-4 flex flex-wrap justify-center gap-2">
           {!recording && phase !== "done" && (
             <Button onClick={() => void handleStart()} disabled={busy}>

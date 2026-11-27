@@ -43,3 +43,22 @@ it("combines magnetometer and accelerometer samples into a heading", async () =>
   expect(document.querySelector("#compass-heading")?.textContent).toBe("0° N")
   expect(screen.getByText("High")).toBeVisible()
 })
+
+it("places magnetic north to the left when the top faces east and retains magnetic accuracy", async () => {
+  render(
+    <PlatformProvider>
+      <CompassTool />
+    </PlatformProvider>,
+  )
+  await act(async () => {})
+  act(() => {
+    sensor.emit?.({ kind: "magnetometer", timestampMs: 1, values: [-40, 0, 0], accuracy: 1 })
+    sensor.emit?.({ kind: "accelerometer", timestampMs: 2, values: [0, 0, 9.81], accuracy: 3 })
+  })
+  expect(screen.getByText("Top of screen faces East")).toBeVisible()
+  expect(screen.getByText("Low")).toBeVisible()
+  const north = Array.from(document.querySelectorAll("svg text")).find(
+    (node) => node.textContent === "N",
+  )
+  expect(Number(north?.getAttribute("x"))).toBeLessThan(120)
+})

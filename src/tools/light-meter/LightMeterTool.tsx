@@ -1,3 +1,4 @@
+import { CaptureComparison } from "@/tools/_sensor/CaptureComparison"
 import { useCallback, useState } from "react"
 import { Button } from "@/components/ui/Button"
 import { ToolPanel } from "@/components/ui/ToolPanel"
@@ -76,6 +77,13 @@ export default function LightMeterTool() {
           </p>
         </div>
       </ToolPanel>
+      <CaptureComparison
+        title="Compare desk lighting"
+        hint="Keep the phone face up at the same height for all three readings."
+        labels={["Left", "Middle", "Right"]}
+        value={streaming ? lux : null}
+        format={formatLux}
+      />
       <p className="text-xs leading-5 text-[var(--text-secondary)]">
         Ambient-light readings are approximate and vary by phone model and sensor placement. They
         are not a photographic light meter. Samples stay on this device, stop in the background, and

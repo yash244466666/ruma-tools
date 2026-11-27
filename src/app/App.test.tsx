@@ -12,22 +12,23 @@ afterEach(() => {
 })
 
 describe("application shell", () => {
-  it("renders the catalog with enabled and planned tools", async () => {
+  it("shows the seven Tool Atlas groups and a link to every enabled tool", async () => {
     render(
       <PlatformProvider>
         <App />
       </PlatformProvider>,
     )
 
-    expect(
-      screen.getByRole("heading", { name: "Useful tools, ready when you are" }),
-    ).toBeInTheDocument()
-    expect(screen.getByRole("link", { name: "Unit Converter" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "Tool atlas" })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: /Money & math/ })).toHaveAttribute(
+      "href",
+      "#/category/money-math",
+    )
     // A cut tool (ADR 0023) is no longer part of the catalog.
     expect(screen.queryByText("Markdown Preview")).not.toBeInTheDocument()
     const enabledCount = tools.filter(isEnabledTool).length
     expect(
-      screen.getByLabelText(`${enabledCount} tools enabled in the foundation`),
+      screen.getByRole("link", { name: `Browse all ${enabledCount} tools` }),
     ).toBeInTheDocument()
     await waitFor(() => expect(document.documentElement).toHaveAttribute("data-theme"))
   })
@@ -49,7 +50,10 @@ describe("application shell", () => {
     expect(search).toHaveValue("")
     expect(search).toHaveFocus()
     expect(screen.queryByRole("button", { name: "Clear search" })).not.toBeInTheDocument()
-    expect(screen.getByRole("link", { name: "Unit Converter" })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: /Money & math/ })).toHaveAttribute(
+      "href",
+      "#/category/money-math",
+    )
   })
 
   it("clears the catalog search on Escape", async () => {
@@ -73,7 +77,7 @@ describe("application shell", () => {
         <App />
       </PlatformProvider>,
     )
-    expect(screen.getByRole("heading", { name: "Your app, your device" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "Settings" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "System" })).toBeInTheDocument()
     await waitFor(() => expect(document.documentElement).toHaveAttribute("data-theme"))
   })
@@ -136,7 +140,7 @@ describe("application shell", () => {
     ]) {
       expect(text).toContain(durableClass)
     }
-    expect(text).toContain("never saves it automatically")
+    expect(text).toContain("unless you choose to save it")
   })
 
   it("clears every durable class when the clear action is confirmed", async () => {

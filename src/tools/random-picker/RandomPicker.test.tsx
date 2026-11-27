@@ -20,12 +20,15 @@ function resultText(): string | null | undefined {
 }
 
 describe("RandomPicker interactions", () => {
-  it("picks one of the entered list items", () => {
+  it("draws name cards and settles on one entered item", async () => {
+    vi.useFakeTimers()
     renderTool()
     fireEvent.change(screen.getByLabelText("Items"), {
       target: { value: "Pizza\nSushi\nTacos" },
     })
     fireEvent.click(screen.getByRole("button", { name: "Pick an item" }))
+    expect(screen.getByRole("button", { name: "Drawing…" })).toBeDisabled()
+    await act(() => vi.advanceTimersByTime(600))
     expect(resultText()).toMatch(/^(Pizza|Sushi|Tacos)$/)
   })
 
