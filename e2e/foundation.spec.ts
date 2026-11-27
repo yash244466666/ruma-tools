@@ -31,7 +31,7 @@ test("opens a tool from its atlas group and returns there", async ({ page }) => 
   await page.locator(".back-link").click()
   await expect(page.getByRole("link", { name: "Currency Converter", exact: true })).toBeVisible()
   await page.goto("/#/category/all")
-  await expect(page.locator(".tool-card")).toHaveCount(65)
+  await expect(page.locator(".tool-card")).toHaveCount(67)
 })
 
 test("catalog does not overflow across foundation breakpoints", async ({ page }) => {

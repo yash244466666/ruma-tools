@@ -128,7 +128,7 @@ export function SettingsScreen({
           <ToolPanel title="Build information">
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
               <dt className="text-[var(--text-secondary)]">Version</dt>
-              <dd className="font-mono">0.1.0</dd>
+              <dd className="font-mono">1.1</dd>
               <dt className="text-[var(--text-secondary)]">Platform</dt>
               <dd className="capitalize">{platform}</dd>
               <dt className="text-[var(--text-secondary)]">Manifest</dt>

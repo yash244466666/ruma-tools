@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import { Button } from "@/components/ui/Button"
 import { ToolPanel } from "@/components/ui/ToolPanel"
 import { usePlatform } from "@/platform/platform-context"
@@ -16,15 +16,22 @@ import {
   type Point,
 } from "./photo"
 
-type Mode = "scan" | "id" | "redact" | "qr" | "overlay" | "magnify"
+type Mode = "scan" | "id" | "redact" | "qr" | "overlay" | "magnify" | "measure"
 const names = ["Top left", "Top right", "Bottom right", "Bottom left"]
 const sizes = [
   [35, 45],
   [51, 51],
   [30, 40],
 ] as const
-function Studio({ mode }: { mode: Mode }) {
+function Studio({
+  mode,
+  renderPhoto,
+}: {
+  mode: Mode
+  renderPhoto?: (image: HTMLCanvasElement) => ReactNode
+}) {
   const { files, lifecycle, clipboard } = usePlatform()
+  const [imageVersion, setImageVersion] = useState(0)
   const [first, setFirst] = useState<HTMLCanvasElement | null>(null),
     [second, setSecond] = useState<HTMLCanvasElement | null>(null)
   const [points, setPoints] = useState<Point[]>(corners),
@@ -93,6 +100,7 @@ function Studio({ mode }: { mode: Mode }) {
       setSecond(canvas)
       return "Second photo ready."
     }
+    setImageVersion((v) => v + 1)
     setFirst(canvas)
     setSecond(null)
     setIndex(0)
@@ -153,7 +161,10 @@ function Studio({ mode }: { mode: Mode }) {
     if (!v?.videoWidth) return
     const shot = photoCanvas(v, v.videoWidth, v.videoHeight)
     if (mode === "overlay" && first) setSecond(shot)
-    else setFirst(shot)
+    else {
+      setImageVersion((n) => n + 1)
+      setFirst(shot)
+    }
     controller.current?.abort()
     setStatus("View frozen.")
   }
@@ -282,11 +293,11 @@ function Studio({ mode }: { mode: Mode }) {
     await files.saveAs({ encoding: "base64", mimeType: mime, name, data: bytesToBase64(bytes) })
     return "File saved."
   }
-  const supportsCamera = mode === "overlay" || mode === "magnify"
+  const supportsCamera = mode === "overlay" || mode === "magnify" || mode === "measure"
   return (
     <ToolPanel>
       <div className="grid gap-3">
-        <Button disabled={busy || live} onClick={() => void run(() => pick())}>
+        <Button disabled={busy || live || pending} onClick={() => void run(() => pick())}>
           {first ? "Choose another photo" : "Choose photo"}
         </Button>
         {supportsCamera && (
@@ -353,7 +364,8 @@ function Studio({ mode }: { mode: Mode }) {
             />
           </label>
         )}
-        {first && (
+        {first && !live && renderPhoto && <div key={imageVersion}>{renderPhoto(first)}</div>}
+        {first && !renderPhoto && (
           <>
             <canvas
               ref={view}
@@ -525,4 +537,8 @@ export function QrReader() {
 }
 export function Magnifier() {
   return <Studio mode="magnify" />
+}
+
+export function MeasurementPhoto({ render }: { render: (image: HTMLCanvasElement) => ReactNode }) {
+  return <Studio mode="measure" renderPhoto={render} />
 }

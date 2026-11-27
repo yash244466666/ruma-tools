@@ -5,5 +5,6 @@ final class PreviewPlugins {
         activity.registerPlugin(DiagnosticsPlugin.class);
         activity.registerPlugin(ForegroundGpsPlugin.class);
         activity.registerPlugin(ScopedFolderPlugin.class);
+        activity.registerPlugin(ArMeasurePlugin.class);
     }
 }
