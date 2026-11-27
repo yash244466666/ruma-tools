@@ -1,11 +1,46 @@
 # Android Tools Implementation Tracker
 
-> Last updated: 2026-11-24 Europe/Berlin
+> Last updated: 2026-11-27 23:52 Asia/Dhaka
 > Tracker schema: 1
 > Current milestone: Foundation Complete — ADR 0026 expands the approved version-1 scope to **38 tools**: the 33 of ADR 0025 plus Level & Angle, Compass, Barometer & Altitude, Light Meter, and Vibration Meter. All 38 are implemented with automated evidence green and a current 38-tool emulator, instrumentation, and process-recreation run; the 70 cut tools remain implemented in-tree at lifecycle `removed`; physical-device evidence (#18/#20/#25) and the product-owner release gates (#27–#41) remain open
 > Upstream portfolio commit: `61e54c64edbeffc9487239b6dae399e255c6a71d`
 > Approved public version 1 scope: **38 tools per ADR 0026 (accepted 2026-10-30), which adds five permission-free sensor tools to ADR 0025's 33-tool scope (which expanded ADR 0023's 30 tools; ADR 0023 superseded the 100-tool scope of ADR 0022 and the all-87 clause of ADR 0004); ADR 0021 keeps youtube-downloader excluded. The manifest carries 38 `enabled` entries and 70 `removed` entries whose source, logic, provenance, and tests stay in-tree.**
 > Public release readiness: **NO — foundation only**
+
+### 2026-11-27 — Tool Atlas GitHub tester release (#250)
+
+- The owner authorized implementation and promotion through the existing GitHub testing pipeline. The feature branch is based on `dev` at `d91a53f`. The seven-category tester catalog contains 38 enabled tools and 27 experimental entries. The production web bundle and unsigned release AAB retain the 38-tool catalog.
+- All nine requested repairs have implementations. Additional modes cover the shopping basket, angle cue, light and vibration comparisons, relative stair height and magnetic case comparison. The GPS, camera, hardware diagnostics, scoped file operations, household and travel tools are available in the tester build. Automatic camera dimension measurement stays deferred. Archive Manager creates ZIP and reads ZIP/RAR.
+- The first pass ran 1,831 unit/component tests successfully and built debug, internal and unsigned release artifacts. Browser download tests verified ZIP, corrected PDF, ID print sheets, image QR decoding and packing-list restoration. The bundled reader was subsequently updated to libarchive 3.8.11. The latest test run and installed APK checks are in progress. Hardware accuracy and calibration still require physical device evidence.
+
+### 2026-11-27 — Owner review before the next implementation and release
+
+- The owner requested the [consolidated Bengali list](docs/TOOL_ROADMAP_BN.md), with nine existing tool improvements and 35 entries for new work. The owner removed proximity-based recipe navigation, leaving six selected sensor features. Camera work starts with manual, model-free operations. The product list describes planned work, not a change to the shipped registry.
+- The owner specified a fresh feature branch to `dev`, then promotion to `main` through the existing CI, Pages deployment and GitHub Releases APK. Wait for their explicit start instruction before further implementation or a branch, push or deployment. No remote changes were made.
+- Current local edits include the Tool Atlas shell, converter, calendar/contact file exports, recipe sample, WebM export MIME fix, Random Picker list animation and a running basket inside Unit Price Comparer. One Android emulator run completed with no failures and two phase-gated skips, including checking contact/calendar file bytes. The latest browser run passed 83 of 84 cases; the small-screen Pomodoro running-state assertion failed. A test assertion in AudioRecorder also fails lint. Clear both before promoting.
+- Final pre-hold local results: all 1,809 Vitest tests passed across 236 files. The debug APK with the shopping basket passed Gradle lint, assembly, Android unit and connected tests (two phase-gated skips) and the eight-permission merged-manifest gate. The browser and JavaScript lint findings above remain open. The owner received the revised plan on Telegram.
+
+### 2026-11-27 — Tool Atlas implementation and utility feedback
+
+- The owner resumed implementation of Tool Atlas. The new shell and seven task groups are in the workspace, with source and installed-artifact verification in progress.
+- The Tool Atlas shell passed 1,806 unit/component assertions across 236 files. Chromium verified four screens at 200% text across 320, 390 and 800 CSS pixels. The first debug APK contains the new shell. Its first browser E2E pass found four ambiguous test locators on both viewports (74/82 passed). Those locators were tightened. The API 35 emulator encountered a System UI not-responding dialog during instrumentation. Successful installed-device verification is still pending.
+- Since the first debug package, work has begun on the two calendar/contact downloads, the WebM export type, recipe serving labels and sample, and the selected Random Picker card draw. The first APK predates these edits.
+- Nine existing tools have owner-reported usability or export issues. The proposed acceptance checks and 15 candidate utilities are in [Tool ideas and usability work](docs/TOOL_IDEAS.md).
+
+### 2026-11-27 — Tool Atlas selected for the mobile layout
+
+- The owner selected Tool Atlas after comparing seven designs, then paused implementation to discuss the tool count. The selected home groups the existing 38 enabled tools into seven categories. The registry also retains 70 removed entries.
+
+- Expanded the comparison to seven designs. Quick Switch searches all 38 tools, Pocket Workbench performs conversions, percentages and bill splitting on the home screen, Icon Board pages through all 38 tools, and Split View keeps a tool switcher beside an active tool. At 390 × 700 CSS pixels, Icon Board showed nine complete tool shortcuts. A conversion result was visible on entry in Workbench and Split View. Quick Switch and Icon Board each opened Unit Converter in one tap without scrolling. Local Chromium also checked keyboard search, calculations, the five icon pages, scratchpad retention when switching tools, and narrow layouts at 320 CSS pixels.
+- At 390 × 700 CSS pixels, the built web catalog's first card begins at y=485 and extends behind the bottom navigation at y=628. Its title is visible, but the full card requires scrolling.
+- Compared three interactive design previews outside the app. On the first screen, Field Index shows six full tool shortcuts, Personal Desk shows five distinct shortcuts with seeded favorites and recents, and Tool Atlas shows five full categories. Opening Unit Converter from home took one, one, and two taps respectively, all with zero scroll. Local Chromium checks exercised search, conversion, resetting the measurements, and a 320-pixel-wide preview. These are prototype observations.
+
+### 2026-11-27 — Project context and local artifact verification
+
+- Reviewed `dev` at `d91a53f`. The runtime registry has 38 enabled entries with lazy components and 70 removed entries without components. Currency Converter is the only enabled tool that requests provider data.
+- `pnpm typecheck` and `pnpm test --reporter=dot` passed (1,805 tests across 236 files). Some React tests emitted `act(...)` warnings. The CSS token, contrast, GitHub Actions policy, and work-item manifest checks passed. The work-item check was a local dry run.
+- The existing debug APK contains the Ruma identity, SHA-256 `417835bb781e1a534f3c2808aa4f37cedb835aacb81d265b826d657a5e837858`. `node scripts/check-android-manifest.mjs debug` passed with eight reviewed permissions and one exported activity. The cached internal APK and release AAB still contain the former `Yash Tools` identity. Rebuild those variants from current source before using local artifacts for release evidence.
+- The November 24 entry records the browser and Android build results. The October 30 device checklist records the emulator run on an earlier APK. The physical-device record for issue #18 remains open.
 
 ### 2026-11-24 — Product identity renamed to Ruma Tools (ADR 0030)
 
@@ -927,16 +962,14 @@ These are reproducibility evidence, not publication candidates. Rebuild after an
 
 ## 9. Next executable queue
 
-1. Configure the recommended saved Project views in GitHub's UI; upgrade the account plan before completing protected-main issue #129.
-2. Connect/authorize a physical Android device, install the verified debug APK, and execute issue #18's physical checklist.
-
-   **38-tool work-item provisioning:** `config/github-work-items.json` now describes 39 managed tools / 151 issues and passes `pnpm github:work-items:check`, but live GitHub still carries the earlier 30-tool/143-issue state. Run `pnpm github:work-items:apply` only on explicit owner authorization; it is not part of a build or CI.
-
+1. Connect an authorized physical Android device, install the current Ruma debug APK, and record its hash, device model, and WebView version for issue #18.
+2. For internal or release-variant testing, build fresh artifacts and verify their package IDs against ADR 0030. The local cached copies inspected on November 27 predate the rename.
 3. Complete physical Android validation of the 38 retained version-1 tools and the outstanding device-evidence rows (#18/#20/#25/#111/#112) and the physical rows recorded in the certification dossiers (#22/#23/#25/#26).
 4. Certification-gate note: the automatable portions of #21/#22/#23/#24/#26/#33 are complete with dossiers under `docs/certification/`; the remaining rows on those issues depend on the device evidence above.
 5. Replace generated launcher/splash assets, including adaptive and monochrome icons, after final visual identity approval (owner).
-6. Approve or revise the provisional app name, application ID, bundled origin, and privacy posture before release work (owner); the version-1 scope is 38 tools per ADR 0026.
+6. Confirm Play listing and publisher details against the accepted Ruma Tools identity (ADR 0030) and complete the privacy declarations for the 38-tool scope (ADR 0026).
 7. Freeze release-signing/key-custody strategy without committing secrets (owner).
+8. Configure the recommended GitHub Project views and follow up on branch protection under #129. The October 30 planning entry records the completed 151-issue provisioning run.
 
 ## 10. Release-gate snapshot
 

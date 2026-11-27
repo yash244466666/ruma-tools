@@ -35,7 +35,7 @@ public final class ProcessRecreationInstrumentedTest {
 
         try (ActivityScenario<MainActivity> scenario = WebViewTestHarness.launch()) {
             WebViewTestHarness.navigate(scenario, "#/settings");
-            WebViewTestHarness.waitForText(scenario, "Your app, your device");
+            WebViewTestHarness.waitForCondition(scenario, "document.querySelector('h1')?.textContent === 'Settings'");
             WebViewTestHarness.clickButton(scenario, "Dark");
             WebViewTestHarness.waitForCondition(
                 scenario,

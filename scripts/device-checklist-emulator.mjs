@@ -490,18 +490,26 @@ async function phaseShell() {
     JSON.stringify(origin),
   )
 
-  const cards = /** @type {number} */ (
-    await page.evaluate("document.querySelectorAll(\"a[href^='#/tool/']\").length")
+  await page.waitFor("document.querySelectorAll('.atlas-tile').length === 7")
+  await page.evaluate(`document.querySelector("a[href='#/category/all']").click()`)
+  await page.waitFor(`document.querySelectorAll("a[href^='#/tool/']").length > 0`)
+  const catalogIds = /** @type {string[]} */ (
+    await page.evaluate(
+      `[...document.querySelectorAll("a[href^='#/tool/']")].map(link => link.hash.slice('#/tool/'.length))`,
+    )
   )
+  const cards = catalogIds.length
   record(
     "shell.catalogRendersAllEnabledTools",
-    cards >= enabledToolCount ? "PASS" : "FAIL",
-    `${cards} enabled tool cards`,
+    cards === enabledToolCount &&
+      new Set(catalogIds).size === cards &&
+      catalogIds.every((id) => versionOneScope.has(id))
+      ? "PASS"
+      : "FAIL",
+    `${cards} tool links reached through the atlas`,
   )
-  if (cards < enabledToolCount) {
-    await page.navigate("#/")
-    await page.waitFor('document.querySelector(".search-field input") !== null', 15_000)
-  }
+  await page.navigate("#/")
+  await page.waitFor("document.querySelectorAll('.atlas-tile').length === 7")
 
   // A query that matches retained tools only; "hash" now matches nothing because Hash
   // Generator was cut by ADR 0023, which would read as a filter regression.
@@ -549,7 +557,7 @@ async function phaseShell() {
   }
 
   await page.navigate("#/settings")
-  await page.waitFor("document.body.innerText.includes('Your app, your device')")
+  await page.waitFor("document.querySelector('h1')?.textContent === 'Settings'")
   await page.clickButton("Light")
   await page.waitFor("document.documentElement.dataset.theme === 'light'")
   await page.clickButton("Dark")
@@ -1739,6 +1747,7 @@ async function phaseTools(page) {
       "dice-roller",
       "Dice Roller",
       async (p) => {
+        await p.clickButton("Advanced dice")
         await p.setValue("#dice-notation", "1d6 + 0")
         await p.clickButton("Roll")
         await p.waitFor("/^Total [1-6] from 1d6 \\+ 0\\.$/m.test(document.body.innerText)")

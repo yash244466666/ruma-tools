@@ -11,6 +11,7 @@ const OUT = process.env.AUDIT_OUT ?? "/tmp/ruma-ui-audit"
 
 const screens = [
   ["catalog", "#/"],
+  ["money-math", "#/category/money-math"],
   ["favorites-empty", "#/favorites"],
   ["recent-empty", "#/recent"],
   ["settings", "#/settings"],
@@ -51,7 +52,7 @@ for (const theme of themes) {
     theme,
   )
   await page.goto(BASE + "/#/")
-  await page.waitForSelector(".tool-grid")
+  await page.waitForSelector(".atlas-tile")
 
   for (const [name, hash] of screens) {
     await page.goto(BASE + "/" + hash)
@@ -72,7 +73,7 @@ for (const theme of themes) {
       // also capture the first tool-grid page for catalog screens
       if (name === "catalog") {
         await page.evaluate(() => {
-          const top = document.querySelector(".tool-grid")?.getBoundingClientRect().top ?? 0
+          const top = document.querySelector(".atlas-tile")?.getBoundingClientRect().top ?? 0
           window.scrollTo({ top: window.scrollY + top - 60, behavior: "instant" })
         })
         await page.waitForTimeout(120)

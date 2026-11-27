@@ -18,6 +18,8 @@ const maximumSamples = 300
 
 export default function BarometerTool() {
   const [pressure, setPressure] = useState<number | null>(null)
+  const [floorStart, setFloorStart] = useState<number | null>(null)
+  const [rise, setRise] = useState<number | null>(null)
   const [samples, setSamples] = useState<PressureSample[]>([])
   const [seaLevel, setSeaLevel] = useState(String(standardSeaLevelHpa))
 
@@ -122,6 +124,40 @@ export default function BarometerTool() {
           {altitude === null && pressure !== null
             ? " Enter a sea-level reference between 800 and 1100 hPa."
             : ""}
+        </p>
+      </ToolPanel>
+      <ToolPanel title="Stair climb">
+        <p>
+          Capture pressure downstairs and again at the top. The difference gives an approximate
+          height over a short climb.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button
+            disabled={!streaming || pressure === null}
+            onClick={() => {
+              setFloorStart(pressure)
+              setRise(null)
+            }}
+          >
+            Set starting floor
+          </Button>
+          <Button
+            variant="secondary"
+            disabled={!streaming || pressure === null || floorStart === null}
+            onClick={() => {
+              if (pressure !== null && floorStart !== null)
+                setRise(44330 * (1 - (pressure / floorStart) ** (1 / 5.255)))
+            }}
+          >
+            Finish climb
+          </Button>
+        </div>
+        <p role="status">
+          {rise !== null
+            ? `Height change: ${formatAltitude(rise)}`
+            : floorStart !== null
+              ? "Starting floor captured."
+              : ""}
         </p>
       </ToolPanel>
       <p className="text-xs leading-5 text-[var(--text-secondary)]">

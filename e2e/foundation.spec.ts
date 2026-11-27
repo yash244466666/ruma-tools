@@ -1,13 +1,11 @@
 import { readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { expect, test } from "@playwright/test"
+import { expect, test, type Page } from "@playwright/test"
 
 test("catalog search is usable", async ({ page }) => {
   await page.goto("/#/")
-  await expect(
-    page.getByRole("heading", { name: "Useful tools, ready when you are" }),
-  ).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Tool atlas" })).toBeVisible()
   await expect(page.getByRole("navigation", { name: "Primary navigation" }).last()).toBeVisible()
   await expect(page.locator("body")).not.toHaveCSS("overflow-x", "scroll")
 
@@ -19,7 +17,21 @@ test("catalog search is usable", async ({ page }) => {
   const clearButton = page.getByRole("button", { name: "Clear search" })
   await expect(clearButton).toBeVisible()
   await clearButton.click()
-  await expect(page.getByText("Dice Roller")).toBeVisible()
+  await expect(page.locator(".atlas-tile")).toHaveCount(7)
+  await page.getByRole("link", { name: /Sharing & utility/ }).click()
+  await expect(page.getByRole("link", { name: "Dice Roller" })).toBeVisible()
+})
+
+test("opens a tool from its atlas group and returns there", async ({ page }) => {
+  await page.goto("/#/")
+  await page.getByRole("link", { name: /Money & math/ }).click()
+  await expect(page.getByRole("heading", { name: "Money & math", exact: true })).toBeVisible()
+  await page.getByRole("link", { name: "Unit Converter", exact: true }).click()
+  await expect(page.locator(".back-link")).toHaveAttribute("href", "#/category/money-math")
+  await page.locator(".back-link").click()
+  await expect(page.getByRole("link", { name: "Currency Converter", exact: true })).toBeVisible()
+  await page.goto("/#/category/all")
+  await expect(page.locator(".tool-card")).toHaveCount(65)
 })
 
 test("catalog does not overflow across foundation breakpoints", async ({ page }) => {
@@ -55,9 +67,10 @@ test("shell interactive controls meet the 48 dp touch floor", async ({ page }) =
     }
   }
 
-  await assertFloor(".filter-chip")
+  await assertFloor(".atlas-tile")
   await assertFloor(".bottom-link")
   await assertFloor(".search-field")
+  await page.getByRole("link", { name: /Money & math/ }).click()
   await assertFloor(".tool-card .icon-button")
 
   await page.goto("/#/settings")
@@ -91,7 +104,7 @@ test("shell interactive controls meet the 48 dp touch floor", async ({ page }) =
 test("an enabled tool opens and performs a conversion", async ({ page }) => {
   await page.goto("/#/tool/unit-converter")
   await expect(page.getByRole("heading", { name: "Unit Converter" })).toBeVisible()
-  await page.getByLabel("From").fill("2")
+  await page.getByLabel("Value", { exact: true }).fill("2")
   await expect(page.locator("#to-value")).toContainText("0.002")
 })
 
@@ -328,7 +341,7 @@ test("scientific calculator evaluates precedence and functions", async ({ page }
   await expect(page.getByRole("status")).toContainText("Display 10")
 
   await page.getByRole("button", { name: "Clear", exact: true }).click()
-  await page.getByRole("button", { name: "Scientific" }).click()
+  await page.getByRole("button", { name: "Scientific", exact: true }).click()
   await page.getByRole("button", { name: "9", exact: true }).click()
   await page.getByRole("button", { name: "Square root" }).click()
   await expect(page.getByRole("status")).toContainText("Display 3")
@@ -384,7 +397,7 @@ test("stopwatch counts, laps, and resets on wall-clock anchors", async ({ page }
   await page.getByRole("button", { name: "Lap", exact: true }).click()
   await expect(page.getByRole("table")).toContainText("(best lap)")
   await expect(page.getByRole("table")).toContainText("(worst lap)")
-  await page.getByRole("button", { name: "Stop" }).click()
+  await page.getByRole("button", { name: "Stop", exact: true }).click()
   await page.getByRole("button", { name: "Reset" }).click()
   await expect(page.getByRole("timer")).toHaveText("00:00.00")
   await expect(page.getByRole("table")).toHaveCount(0)
@@ -408,6 +421,16 @@ test("countdown timer runs from presets and rejects zero durations", async ({ pa
   await expect(page.getByRole("button", { name: "Start" })).toBeDisabled()
 })
 
+async function checkGeneratedDownload(page: Page, name: string) {
+  const preview = await page.locator("pre").textContent()
+  const pending = page.waitForEvent("download")
+  await page.getByRole("button", { name: `Save .${name.split(".")[1]} file` }).click()
+  const download = await pending
+  expect(download.suggestedFilename()).toBe(name)
+  const path = await download.path()
+  expect(readFileSync(path, "utf8")).toBe(preview)
+}
+
 test("iCalendar and vCard generators escape text and validate links", async ({ page }) => {
   await page.goto("/#/tool/ical-generator")
   await expect(page.getByRole("heading", { name: "iCalendar Generator" })).toBeVisible()
@@ -418,6 +441,7 @@ test("iCalendar and vCard generators escape text and validate links", async ({ p
   await page.getByRole("button", { name: "Generate .ics" }).click()
   await expect(page.locator("pre")).toContainText("SUMMARY:Sync\\, part 2")
 
+  await checkGeneratedDownload(page, "event.ics")
   await page.goto("/#/tool/vcard-generator")
   await expect(page.getByRole("heading", { name: "vCard Generator" })).toBeVisible()
 
@@ -430,6 +454,7 @@ test("iCalendar and vCard generators escape text and validate links", async ({ p
   await page.getByLabel("Website (optional)").fill("https://example.com")
   await page.getByRole("button", { name: "Generate vCard" }).click()
   await expect(page.locator("pre")).toContainText("N:Hopper\\; Admiral;Grace;;;")
+  await checkGeneratedDownload(page, "contact.vcf")
   await expect(page.locator("pre")).toContainText("URL:https://example.com")
 })
 
@@ -546,14 +571,14 @@ test("time zone converter crosses zones and surfaces daylight-saving edges hones
   await expect(page.getByRole("status")).toContainText("Enter a date and time")
 
   await page.getByLabel("Date").fill("2026-01-15")
-  await page.getByLabel("Time").fill("12:00")
+  await page.getByLabel("Time", { exact: true }).fill("12:00")
   await expect(page.getByRole("status")).toContainText(
     "2026-01-15 12:00 in America/New_York is 2026-01-15 23:00 in Asia/Dhaka",
   )
 
   // A spring-forward gap is surfaced as its own state, never silently folded.
   await page.getByLabel("Date").fill("2026-03-08")
-  await page.getByLabel("Time").fill("02:30")
+  await page.getByLabel("Time", { exact: true }).fill("02:30")
   await expect(page.getByRole("alert")).toContainText("does not exist")
 
   await page.getByRole("button", { name: "Clear" }).click()
@@ -586,6 +611,21 @@ test("BMI calculator shows the WHO band and the estimate-only disclaimer", async
   await expect(page.getByText(/BMI 22\.9 —/)).toBeVisible()
   await expect(page.getByText(/normal band/)).toBeVisible()
   await expect(page.getByText(/not medical advice/)).toBeVisible()
+})
+
+test("opens a shopping basket from atlas search and keeps a running budget", async ({ page }) => {
+  await page.goto("/#/")
+  await page.getByRole("searchbox", { name: "Search tools" }).fill("basket")
+  await page.getByRole("link", { name: "Unit Price Comparer" }).click()
+  await page.getByRole("button", { name: "Shopping basket" }).click()
+  await page.getByLabel("Budget (optional)").fill("10")
+  await page.getByLabel("Item name (optional)").fill("Rice")
+  await page.getByLabel("Price per item").fill("4.65")
+  await page.getByRole("button", { name: "Add to basket" }).click()
+  await page.getByRole("button", { name: "One more Rice" }).click()
+  await expect(page.getByRole("status")).toContainText("Budget left 0.70")
+  await page.getByRole("button", { name: "One more Rice" }).click()
+  await expect(page.getByRole("status")).toContainText("Over budget 3.95")
 })
 
 test("unit price comparer ranks mixed units by base-unit cost", async ({ page }) => {
@@ -648,7 +688,7 @@ test("sensor tools expose honest live or unsupported states", async ({ page }) =
 test("recipe scaler scales quantities and leaves unmeasured lines", async ({ page }) => {
   await page.goto("/#/tool/recipe-scaler")
   await expect(page.getByRole("heading", { name: "Recipe Scaler" })).toBeVisible()
-  await page.getByLabel("Desired servings").fill("8")
+  await page.getByLabel("I want to serve").fill("8")
   await page.getByLabel("Ingredients").fill("2 cups flour\n1 1/2 tsp salt\nsalt to taste")
   const list = page.getByRole("list", { name: "Scaled list" })
   await expect(list.getByText("4 cups flour")).toBeVisible()
@@ -683,8 +723,11 @@ test("random picker selects a list item and an inclusive number", async ({ page 
 test("dice roller rolls from secure bytes and repeats the last roll", async ({ page }) => {
   await page.goto("/#/tool/dice-roller")
   await expect(page.getByRole("heading", { name: "Dice Roller" })).toBeVisible()
+  await page.getByRole("button", { name: "Roll die" }).click()
+  await expect(page.getByText(/You rolled [1-6]/)).toBeVisible()
+  await page.getByRole("button", { name: "Advanced dice" }).click()
   await page.locator("#dice-notation").fill("1d6 + 0")
-  await page.getByRole("button", { name: "Roll" }).click()
+  await page.getByRole("button", { name: "Roll", exact: true }).click()
   const result = page.getByRole("status")
   await expect(result).toContainText(/^Total [1-6] from 1d6 \+ 0\.$/)
   await expect(page.getByRole("table")).toBeVisible()

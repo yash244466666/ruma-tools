@@ -45,7 +45,7 @@ public final class RendererRecoveryInstrumentedTest {
                 )
             );
 
-            WebViewTestHarness.waitForText(scenario, "Useful tools, ready when you are");
+            WebViewTestHarness.waitForText(scenario, "Tool atlas");
             AtomicInteger recreatedActivity = new AtomicInteger();
             scenario.onActivity(activity -> recreatedActivity.set(System.identityHashCode(activity)));
             assertNotEquals(originalActivity.get(), recreatedActivity.get());
@@ -78,7 +78,7 @@ public final class RendererRecoveryInstrumentedTest {
                 })
                 .perform(click());
 
-            WebViewTestHarness.waitForText(scenario, "Useful tools, ready when you are");
+            WebViewTestHarness.waitForText(scenario, "Tool atlas");
             WebViewTestHarness.assertOrigin(scenario);
         }
     }

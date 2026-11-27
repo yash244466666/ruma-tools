@@ -60,13 +60,13 @@ jobs:
         run: |
           pnpm install --frozen-lockfile
           pnpm exec tsc -b
-          pnpm exec vite build --base="/${GITHUB_REPOSITORY#*/}/" --outDir=dist
+          pnpm exec vite build --mode tool-preview --base="/${GITHUB_REPOSITORY#*/}/" --outDir=dist
       - name: Build dev preview under /<repo>/dev/
         working-directory: dev-src
         run: |
           pnpm install --frozen-lockfile
           pnpm exec tsc -b
-          pnpm exec vite build --base="/${GITHUB_REPOSITORY#*/}/dev/" --outDir=dist
+          pnpm exec vite build --mode tool-preview --base="/${GITHUB_REPOSITORY#*/}/dev/" --outDir=dist
       - name: Assemble the combined site
         run: |
           mkdir -p site

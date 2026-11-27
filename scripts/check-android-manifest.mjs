@@ -18,10 +18,17 @@ const allowedPermissions = new Set([
   "android.permission.WAKE_LOCK",
 ])
 
-const deniedPermissions = [
+const previewOnlyPermissions = [
   "android.permission.ACCESS_COARSE_LOCATION",
   "android.permission.ACCESS_FINE_LOCATION",
   "android.permission.CAMERA",
+]
+const previewVariant = ["debug", "internal"].includes(variant)
+if (previewVariant)
+  for (const permission of previewOnlyPermissions) allowedPermissions.add(permission)
+const deniedPermissions = [
+  ...(previewVariant ? [] : previewOnlyPermissions),
+  "android.permission.ACCESS_BACKGROUND_LOCATION",
   "android.permission.MANAGE_EXTERNAL_STORAGE",
   "android.permission.QUERY_ALL_PACKAGES",
   "android.permission.READ_CONTACTS",

@@ -14,14 +14,34 @@ export function base64ToBytes(base64: string): Uint8Array {
   return bytes
 }
 
-/**
- * Decodes image bytes into a bitmap with EXIF orientation applied, so the tool never
- * draws a rotated image. `createImageBitmap` streams the decode; the caller enforces
- * the decoded-pixel bound before drawing.
- */
-export async function decodeImage(bytes: Uint8Array): Promise<ImageBitmap> {
-  const blob = new Blob([bytes.buffer as ArrayBuffer])
-  return createImageBitmap(blob, { imageOrientation: "from-image" })
+interface DecodedImage {
+  source: HTMLImageElement
+  width: number
+  height: number
+  close(): void
+}
+
+/** Use WebView's normal image loader, including its EXIF orientation handling. */
+export async function decodeImage(bytes: Uint8Array, type: string): Promise<DecodedImage> {
+  const blob = new Blob([bytes.buffer as ArrayBuffer], { type })
+  const url = URL.createObjectURL(blob)
+  const image = new Image()
+  try {
+    await new Promise<void>((resolve, reject) => {
+      image.onload = () => resolve()
+      image.onerror = () => reject(new Error("Image decode failed"))
+      image.src = url
+    })
+    return {
+      source: image,
+      width: image.naturalWidth,
+      height: image.naturalHeight,
+      close: () => URL.revokeObjectURL(url),
+    }
+  } catch (error) {
+    URL.revokeObjectURL(url)
+    throw error
+  }
 }
 
 /**
@@ -30,7 +50,7 @@ export async function decodeImage(bytes: Uint8Array): Promise<ImageBitmap> {
  * strips EXIF metadata (including any location data) as a side effect.
  */
 export async function encodeImage(
-  bitmap: ImageBitmap,
+  bitmap: DecodedImage,
   plan: ResizePlan,
   mimeType: SupportedImageMimeType,
   quality: number | undefined,
@@ -40,7 +60,11 @@ export async function encodeImage(
   canvas.height = plan.height
   const context = canvas.getContext("2d")
   if (!context) throw new Error("Canvas is unavailable on this device.")
-  context.drawImage(bitmap, 0, 0, plan.width, plan.height)
+  if (mimeType === "image/jpeg") {
+    context.fillStyle = "white"
+    context.fillRect(0, 0, plan.width, plan.height)
+  }
+  context.drawImage(bitmap.source, 0, 0, plan.width, plan.height)
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
       (blob) => {

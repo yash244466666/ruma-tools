@@ -1,3 +1,4 @@
+import { CaptureComparison } from "@/tools/_sensor/CaptureComparison"
 import { useCallback, useRef, useState } from "react"
 import { Button } from "@/components/ui/Button"
 import { ToolPanel } from "@/components/ui/ToolPanel"
@@ -16,17 +17,21 @@ const bufferLimit = 200
 
 export default function VibrationMeterTool() {
   const [reading, setReading] = useState<VibrationReading | null>(null)
+  const [fullWindow, setFullWindow] = useState(false)
   const [waveform, setWaveform] = useState<number[]>([])
   const buffer = useRef<VibrationSample[]>([])
   const lastUiUpdate = useRef(0)
 
   const onSample = useCallback((sample: { timestampMs: number; values: readonly number[] }) => {
+    const last = buffer.current.at(-1)
+    if (last && sample.timestampMs - last.timestampMs > 500) buffer.current = []
     buffer.current = [
       ...buffer.current.slice(-(bufferLimit - 1)),
       { timestampMs: sample.timestampMs, values: sample.values },
     ]
     if (sample.timestampMs - lastUiUpdate.current < 100) return
     lastUiUpdate.current = sample.timestampMs
+    setFullWindow(sample.timestampMs - buffer.current[0]!.timestampMs >= 1000)
     setReading(vibrationReading(buffer.current))
     setWaveform(
       buffer.current
@@ -44,6 +49,7 @@ export default function VibrationMeterTool() {
 
   function reset() {
     buffer.current = []
+    setFullWindow(false)
     setReading(null)
     setWaveform([])
   }
@@ -94,6 +100,13 @@ export default function VibrationMeterTool() {
           </p>
         </div>
       </ToolPanel>
+      <CaptureComparison
+        title="Compare two setups"
+        hint="Leave the phone in the same spot for a full second in each setup, then capture the one-second RMS."
+        labels={["First setup", "Second setup"]}
+        value={streaming && reading && fullWindow ? reading.rms : null}
+        format={formatAcceleration}
+      />
       <p className="text-xs leading-5 text-[var(--text-secondary)]">
         Linear acceleration excludes gravity, so a still phone reads near zero. Readings are
         indicative and vary by sensor and phone placement; this is not a calibrated vibration

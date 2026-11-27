@@ -1,3 +1,4 @@
+import { previewTools, previewBuild } from "./preview-catalog"
 import { lazy } from "react"
 import {
   ArrowDownUp,
@@ -107,6 +108,7 @@ export const toolCategories: readonly ToolCategory[] = [
 ]
 
 export const tools: readonly ToolDefinition[] = [
+  ...previewTools,
   {
     id: "unit-converter",
     label: "Unit Converter",
@@ -1358,10 +1360,18 @@ export const tools: readonly ToolDefinition[] = [
   {
     id: "unit-price-comparer",
     label: "Unit Price Comparer",
-    description:
-      "Compare up to four items by normalizing their prices onto one base unit and ranking cheapest first.",
+    description: "Compare package prices or track a shopping basket against your budget.",
     category: "core",
-    tags: ["unit price", "compare", "shopping", "normalize", "offline"],
+    tags: [
+      "shopping",
+      "basket",
+      "budget",
+      "unit price",
+      "compare",
+      "shopping",
+      "normalize",
+      "offline",
+    ],
     icon: Scale,
     status: "enabled",
     risk: "low",
@@ -1526,5 +1536,8 @@ export function getTool(id: string): ToolDefinition | undefined {
 }
 
 export function isEnabledTool(tool: ToolDefinition): boolean {
-  return tool.status === "enabled" && Boolean(tool.component)
+  return (
+    (tool.status === "enabled" || (previewBuild && tool.status === "experimental")) &&
+    Boolean(tool.component)
+  )
 }

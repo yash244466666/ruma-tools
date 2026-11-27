@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/Button"
 import { Field } from "@/components/ui/Field"
 import { ToolPanel } from "@/components/ui/ToolPanel"
 import { BeforeAfter, Meter, ResultReveal } from "@/components/motion/primitives"
 import { usePlatform } from "@/platform/platform-context"
-import { toSafeErrorMessage } from "@/platform/errors"
+import { PlatformError, toSafeErrorMessage } from "@/platform/errors"
 import { bytesToBase64 } from "@/platform/shared/files"
 import type { PickedFile } from "@/platform/contracts"
 import { blobBytes, base64ToBytes, decodeImage, encodeImage } from "./image-io"
@@ -48,6 +48,19 @@ export default function ImageCompressor() {
   const [status, setStatus] = useState("")
   const [busy, setBusy] = useState(false)
 
+  const [jpegCopy, setJpegCopy] = useState(false)
+  const active = useRef(true)
+  const resultPanel = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    active.current = true
+    return () => {
+      active.current = false
+    }
+  }, [])
+  useEffect(() => {
+    if (result) resultPanel.current?.focus()
+  }, [result])
+
   // The preview URL is disposable; every replacement and the unmount revoke it.
   useEffect(() => {
     return () => {
@@ -60,6 +73,7 @@ export default function ImageCompressor() {
     if (busy) return
     setError("")
     setStatus("")
+    setBusy(true)
     try {
       const selected = await files.pick({
         accept: [...supportedImageMimeTypes],
@@ -78,6 +92,7 @@ export default function ImageCompressor() {
         setError("Only PNG, JPEG, and WebP images are supported.")
         return
       }
+      setJpegCopy(false)
       setPicked(first)
       setResult(null)
       setStatus(
@@ -85,6 +100,8 @@ export default function ImageCompressor() {
       )
     } catch (pickError) {
       setStatus(toSafeErrorMessage(pickError))
+    } finally {
+      if (active.current) setBusy(false)
     }
   }, [busy, files])
 
@@ -92,12 +109,17 @@ export default function ImageCompressor() {
     if (!picked || busy) return
     setBusy(true)
     setError("")
+    setResult(null)
+    setStatus("Reading the selected image…")
     try {
       const content = await files.readContent(picked, { maximumBytes: maximumInputBytes })
       const bytes = base64ToBytes(content.data)
-      const bitmap = await decodeImage(bytes)
+      if (!active.current) return
+      setStatus("Preparing the image…")
+      const bitmap = await decodeImage(bytes, picked.mimeType)
       try {
         if (!isValidDecodedPixels(bitmap.width, bitmap.height)) {
+          setStatus("")
           setError(
             `The image decodes to ${bitmap.width} by ${bitmap.height} pixels, above the ${maximumDecodedPixels / 1_000_000} megapixel limit. Choose a smaller image.`,
           )
@@ -108,7 +130,8 @@ export default function ImageCompressor() {
           setError("Only PNG, JPEG, and WebP images are supported.")
           return
         }
-        const format = planOutputFormat(picked.mimeType)
+        const format = planOutputFormat(jpegCopy ? "image/jpeg" : picked.mimeType)
+        setStatus("Compressing the image…")
         const blob = await encodeImage(
           bitmap,
           plan,
@@ -116,6 +139,7 @@ export default function ImageCompressor() {
           format.useQuality ? quality : undefined,
         )
         const output = await blobBytes(blob)
+        if (!active.current) return
         const savings = savingsPercent(picked.size, output.length)
         setResult({
           originalUrl: URL.createObjectURL(
@@ -137,12 +161,17 @@ export default function ImageCompressor() {
       } finally {
         bitmap.close()
       }
-    } catch {
-      setError("The image could not be processed. It may be corrupted or unsupported here.")
+    } catch (cause) {
+      setStatus("")
+      setError(
+        cause instanceof PlatformError
+          ? toSafeErrorMessage(cause)
+          : "The image could not be processed. Choose another JPEG, PNG or WebP image and try again.",
+      )
     } finally {
       setBusy(false)
     }
-  }, [picked, busy, files, maxWidth, quality])
+  }, [picked, busy, files, maxWidth, quality, jpegCopy])
 
   async function exportImage(action: "share" | "save") {
     if (!result || busy) return
@@ -183,7 +212,7 @@ export default function ImageCompressor() {
             <Button disabled={busy} onClick={() => void pickImage()}>
               {picked ? "Choose another image" : "Choose image"}
             </Button>
-            <Button disabled={!picked} onClick={reset} variant="secondary">
+            <Button disabled={!picked || busy} onClick={reset} variant="secondary">
               Reset
             </Button>
           </div>
@@ -200,6 +229,21 @@ export default function ImageCompressor() {
               device.
             </p>
           )}
+          {picked?.mimeType === "image/png" && (
+            <label className="flex min-h-12 items-center gap-2">
+              <input
+                type="checkbox"
+                checked={jpegCopy}
+                disabled={busy}
+                onChange={(e) => {
+                  setJpegCopy(e.target.checked)
+                  setResult(null)
+                  setStatus("")
+                }}
+              />
+              Save a smaller JPEG copy (white background)
+            </label>
+          )}
           <Field
             hint={`JPEG quality: ${Math.round(quality * 100)}%. PNG output stays lossless.`}
             htmlFor="image-quality"
@@ -209,9 +253,14 @@ export default function ImageCompressor() {
               aria-describedby="image-quality-hint"
               className="app-input"
               id="image-quality"
+              disabled={busy || (picked?.mimeType === "image/png" && !jpegCopy)}
               max={1}
               min={0.1}
-              onChange={(event) => setQuality(clampQuality(Number(event.target.value)))}
+              onChange={(event) => {
+                setQuality(clampQuality(Number(event.target.value)))
+                setResult(null)
+                setStatus("")
+              }}
               step={0.05}
               type="range"
               value={quality}
@@ -223,14 +272,19 @@ export default function ImageCompressor() {
             </p>
             <div
               aria-labelledby="image-width-label"
-              className="grid grid-cols-4 gap-2"
+              className="grid grid-cols-2 gap-2 sm:grid-cols-4"
               role="group"
             >
               {imageWidthOptions.map((value) => (
                 <Button
                   aria-pressed={maxWidth === value}
                   key={value}
-                  onClick={() => setMaxWidth(value)}
+                  disabled={busy}
+                  onClick={() => {
+                    setMaxWidth(value)
+                    setResult(null)
+                    setStatus("")
+                  }}
                   variant={maxWidth === value ? "primary" : "secondary"}
                 >
                   {value}px
@@ -257,50 +311,59 @@ export default function ImageCompressor() {
         </div>
       </ToolPanel>
 
-      <ToolPanel title="Result">
-        {result ? (
-          <ResultReveal token={result.url}>
-            <div className="grid gap-3">
-              <Meter
-                label="Size change"
-                maximum={100}
-                tone={savingsPercent(picked?.size ?? 0, result.size) >= 0 ? "success" : "danger"}
-                value={Math.max(0, savingsPercent(picked?.size ?? 0, result.size))}
-                valueLabel={`${savingsPercent(picked?.size ?? 0, result.size)}% smaller`}
-              />
-              <p className="text-sm text-[var(--text-secondary)]">
-                {result.width} by {result.height} pixels · {formatBytes(result.size)} ·{" "}
-                {result.mimeType.replace("image/", "").toUpperCase()}
-              </p>
-              <BeforeAfter
-                after={result.url}
-                alt={`Compressed image preview, ${result.width} by ${result.height} pixels`}
-                before={result.originalUrl}
-              />
-              <p className="text-xs leading-5 text-[var(--text-secondary)]">
-                Re-encoding strips camera and location metadata. The shared or saved file uses the
-                exact bytes shown here.
-              </p>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <Button disabled={busy} onClick={() => void exportImage("share")}>
-                  Share image
-                </Button>
-                <Button
-                  disabled={busy}
-                  onClick={() => void exportImage("save")}
-                  variant="secondary"
-                >
-                  Save image
-                </Button>
+      <div tabIndex={-1} ref={resultPanel} aria-label="Compression result">
+        <ToolPanel title="Result">
+          {result ? (
+            <ResultReveal token={result.url}>
+              <div className="grid gap-3">
+                <strong>
+                  Original {formatBytes(picked?.size ?? 0)} → Output {formatBytes(result.size)}
+                </strong>
+                <Meter
+                  label="Size change"
+                  maximum={100}
+                  tone={savingsPercent(picked?.size ?? 0, result.size) >= 0 ? "success" : "danger"}
+                  value={Math.max(0, savingsPercent(picked?.size ?? 0, result.size))}
+                  valueLabel={
+                    result.size > (picked?.size ?? 0)
+                      ? "Larger than the original"
+                      : `${savingsPercent(picked?.size ?? 0, result.size)}% smaller`
+                  }
+                />
+                <p className="text-sm text-[var(--text-secondary)]">
+                  {result.width} by {result.height} pixels · {formatBytes(result.size)} ·{" "}
+                  {result.mimeType.replace("image/", "").toUpperCase()}
+                </p>
+                <BeforeAfter
+                  after={result.url}
+                  alt={`Compressed image preview, ${result.width} by ${result.height} pixels`}
+                  before={result.originalUrl}
+                />
+                <p className="text-xs leading-5 text-[var(--text-secondary)]">
+                  Re-encoding strips camera and location metadata. The shared or saved file uses the
+                  exact bytes shown here.
+                </p>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <Button disabled={busy} onClick={() => void exportImage("share")}>
+                    Share image
+                  </Button>
+                  <Button
+                    disabled={busy}
+                    onClick={() => void exportImage("save")}
+                    variant="secondary"
+                  >
+                    Save image
+                  </Button>
+                </div>
               </div>
-            </div>
-          </ResultReveal>
-        ) : (
-          <p className="text-sm text-[var(--text-secondary)]">
-            The compressed preview appears here after compressing an image.
-          </p>
-        )}
-      </ToolPanel>
+            </ResultReveal>
+          ) : (
+            <p className="text-sm text-[var(--text-secondary)]">
+              The compressed preview appears here after compressing an image.
+            </p>
+          )}
+        </ToolPanel>
+      </div>
     </div>
   )
 }

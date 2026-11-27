@@ -12,15 +12,19 @@ This repository is currently a foundation build, not a Play-ready release.
 - Nothing deploys to Google Play. The release AAB is intentionally unsigned and no signing or Play credentials are stored in this repository.
 - Preview: <https://yash244466666.github.io/ruma-tools/> (and `/dev/`).
 
+## Tool Atlas tester build
+
+The GitHub debug APK and Pages preview offer 65 tools in seven categories, including 27 preview utilities. Android hardware readings and the system folder picker run in the APK. The Bengali scope lists the nine repairs, new utilities and deferred ideas. [Tester roadmap](docs/TOOL_ROADMAP_BN.md)
+
 ## Implemented foundation
 
 - Adaptive catalog for phones and larger windows
-- Search and category filtering
+- Tool Atlas with seven category directories, a searchable all-tools list, and direct tool links
 - Favorites and recent-tool persistence
 - System, light, and dark themes
 - Offline/network state awareness
 - Typed web/Android platform-service boundary
-- Thirty enabled tools (ADR 0023 scope), including the complete 12-tool architecture milestone; the registry keeps the other 70 implemented tools in-tree as `removed`
+- Thirty-eight enabled tools (ADR 0026 scope), including the complete 12-tool architecture milestone. The registry keeps the other 70 implemented tools in-tree as `removed`.
 - Scoped Android document picker, content reads, Save As, sharing, sensitive clipboard, generated-cache cleanup, notifications, and renderer recovery
 - Capacitor Android project targeting API 36 with minimum API 24
 - Debug/internal/release variants

@@ -59,25 +59,28 @@ export default function PomodoroTimer() {
   // phase; notifications that were missed are not replayed (best-effort by design).
   useEffect(() => {
     let cancelled = false
-    void preferences.get<unknown>(pomodoroStorageKey).then((raw) => {
-      if (cancelled) return
-      const migrated = migrateTimer(raw)
-      if (migrated.status === "ok") {
-        const timer = reconstructTimer(migrated.timer, Date.now())
-        setMode(timer.mode)
-        setState(timer.state)
-        setSessions(timer.sessions)
-        setWorkMinutes(timer.workMinutes)
-        setBreakMinutes(timer.breakMinutes)
-        setNotifyEnabled(timer.notifyEnabled)
-        if (timer.state === "running") {
-          setAnchor({ startedAtMs: timer.startedAtMs, remainingAtStartMs: timer.remainingMs })
-        } else {
-          setPausedRemainingMs(timer.remainingMs)
+    void preferences
+      .get<unknown>(pomodoroStorageKey)
+      .catch(() => null)
+      .then((raw) => {
+        if (cancelled) return
+        const migrated = migrateTimer(raw)
+        if (migrated.status === "ok") {
+          const timer = reconstructTimer(migrated.timer, Date.now())
+          setMode(timer.mode)
+          setState(timer.state)
+          setSessions(timer.sessions)
+          setWorkMinutes(timer.workMinutes)
+          setBreakMinutes(timer.breakMinutes)
+          setNotifyEnabled(timer.notifyEnabled)
+          if (timer.state === "running") {
+            setAnchor({ startedAtMs: timer.startedAtMs, remainingAtStartMs: timer.remainingMs })
+          } else {
+            setPausedRemainingMs(timer.remainingMs)
+          }
         }
-      }
-      setLoaded(true)
-    })
+        setLoaded(true)
+      })
     return () => {
       cancelled = true
     }
@@ -318,7 +321,9 @@ export default function PomodoroTimer() {
     state === "running" ? (
       <Button onClick={pause}>Pause</Button>
     ) : (
-      <Button onClick={start}>{state === "paused" ? "Resume" : "Start"}</Button>
+      <Button disabled={!loaded} onClick={start}>
+        {state === "paused" ? "Resume" : "Start"}
+      </Button>
     )
 
   const busyHint = useMemo(
@@ -335,7 +340,7 @@ export default function PomodoroTimer() {
           <div className="grid grid-cols-2 gap-2">
             <Button
               aria-pressed={mode === "work"}
-              disabled={state === "running"}
+              disabled={!loaded || state === "running"}
               onClick={() => switchMode("work")}
               variant={mode === "work" ? "primary" : "secondary"}
             >
@@ -343,7 +348,7 @@ export default function PomodoroTimer() {
             </Button>
             <Button
               aria-pressed={mode === "break"}
-              disabled={state === "running"}
+              disabled={!loaded || state === "running"}
               onClick={() => switchMode("break")}
               variant={mode === "break" ? "primary" : "secondary"}
             >
@@ -406,7 +411,7 @@ export default function PomodoroTimer() {
           >
             <input
               className="app-input"
-              disabled={state === "running"}
+              disabled={!loaded || state === "running"}
               id="pomodoro-work"
               max={60}
               min={1}
@@ -422,7 +427,7 @@ export default function PomodoroTimer() {
           >
             <input
               className="app-input"
-              disabled={state === "running"}
+              disabled={!loaded || state === "running"}
               id="pomodoro-break"
               max={30}
               min={1}

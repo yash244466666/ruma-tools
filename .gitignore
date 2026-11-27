@@ -28,3 +28,5 @@ android/captures/
 signing/
 play-service-account*.json
 .ui-audit/
+
+android/app/src/toolPreview/assets/

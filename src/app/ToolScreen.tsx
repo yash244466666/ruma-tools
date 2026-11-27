@@ -1,108 +1,96 @@
-import { ArrowLeft, CircleSlash, Construction, Home } from "lucide-react"
-import { Suspense, useEffect, useRef } from "react"
+import { CircleSlash, CloudOff, Construction, Heart, Home, Wifi } from "lucide-react"
+import { Suspense, useEffect } from "react"
+import { AtlasHeader } from "@/app/AtlasHeader"
 import { routeHref } from "@/app/routing"
 import { getTool, isEnabledTool } from "@/tools/registry"
+
+interface ToolScreenProps {
+  toolId: string
+  onOpened: (id: string) => void
+  backHref: string
+  favorite: boolean
+  onToggleFavorite: (id: string) => void
+}
 
 export function ToolScreen({
   toolId,
   onOpened,
-}: {
-  toolId: string
-  onOpened: (id: string) => void
-}) {
-  const titleRef = useRef<HTMLHeadingElement>(null)
+  backHref,
+  favorite,
+  onToggleFavorite,
+}: ToolScreenProps) {
   const tool = getTool(toolId)
 
   useEffect(() => {
     if (tool && isEnabledTool(tool)) onOpened(tool.id)
-    titleRef.current?.focus()
   }, [onOpened, tool])
 
-  if (!tool) {
+  if (!tool || !isEnabledTool(tool) || !tool.component) {
+    const removed = tool?.status === "removed"
+    const Icon = !tool ? Home : removed ? CircleSlash : Construction
     return (
-      <section className="empty-state screen-content">
-        <Home aria-hidden="true" size={30} />
-        <h1 className="text-2xl font-bold" ref={titleRef} tabIndex={-1}>
-          Tool not found
-        </h1>
-        <p>This link does not match a tool in the current release manifest.</p>
-        <a className="text-link" href={routeHref({ screen: "catalog" })}>
-          Return to tools
-        </a>
-      </section>
-    )
-  }
-
-  const Icon = tool.icon
-
-  if (!isEnabledTool(tool) || !tool.component) {
-    // `removed` is a distinct terminal state from "not implemented yet": the tool was
-    // deliberately taken out of the released scope (ADR 0023), so the copy must not
-    // promise it is coming. The icon differs so the state does not rely on wording alone.
-    const removed = tool.status === "removed"
-    const StateIcon = removed ? CircleSlash : Construction
-    return (
-      <div className="screen-content">
-        <a className="back-link" href={routeHref({ screen: "catalog" })}>
-          <ArrowLeft aria-hidden="true" size={19} /> Tools
-        </a>
-        <section className="empty-state mt-4">
-          <StateIcon aria-hidden="true" size={30} />
-          <h1 className="text-2xl font-bold" ref={titleRef} tabIndex={-1}>
-            {tool.label}
-          </h1>
-          <p>
-            {removed
-              ? "This tool is not part of the released tool set, so it is not available in this build."
-              : "This tool is part of the vertical-slice backlog and is not enabled in this build yet."}
-          </p>
-          <a className="text-link" href={routeHref({ screen: "catalog" })}>
-            Browse ready tools
-          </a>
-        </section>
-      </div>
+      <>
+        <AtlasHeader title={tool?.label ?? "Tool not found"} backHref={backHref} />
+        <div className="screen-content">
+          <section className="empty-state">
+            <Icon aria-hidden="true" size={30} />
+            <p>
+              {!tool
+                ? "This link does not match a tool in the current release manifest."
+                : removed
+                  ? "This tool is not part of the released tool set, so it is not available in this build."
+                  : "This tool is part of the vertical-slice backlog and is not enabled in this build yet."}
+            </p>
+            <a className="text-link" href={routeHref({ screen: "catalog" })}>
+              {tool ? "Browse ready tools" : "Return to tools"}
+            </a>
+          </section>
+        </div>
+      </>
     )
   }
 
   const ToolComponent = tool.component
-
+  const StatusIcon = tool.network ? Wifi : CloudOff
   return (
-    <div className="screen-content tool-screen">
-      <a className="back-link" href={routeHref({ screen: "catalog" })}>
-        <ArrowLeft aria-hidden="true" size={19} /> Tools
-      </a>
-      <header className="tool-heading">
-        <div className="tool-icon large">
-          <Icon aria-hidden="true" size={26} />
-        </div>
-        <div className="tool-heading-text">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="eyebrow">{tool.network ? "Network tool" : "Works offline"}</p>
-            <span className="risk-badge">{tool.risk} risk</span>
-          </div>
-          <h1
-            className="mt-1 text-2xl font-extrabold tracking-tight text-[var(--text)] sm:text-3xl"
-            ref={titleRef}
-            tabIndex={-1}
+    <div className="tool-screen">
+      <AtlasHeader
+        title={tool.label}
+        backHref={backHref}
+        action={
+          <button
+            className="icon-button atlas-header-heart"
+            type="button"
+            aria-label={
+              favorite ? `Remove ${tool.label} from favorites` : `Add ${tool.label} to favorites`
+            }
+            aria-pressed={favorite}
+            onClick={() => onToggleFavorite(tool.id)}
           >
-            {tool.label}
-          </h1>
-          <p className="mt-2 max-w-2xl leading-7 text-[var(--text-secondary)]">
-            {tool.description}
-          </p>
-        </div>
-      </header>
-      <Suspense
-        fallback={
-          <div className="loading-panel" role="status">
-            Loading tool…
-          </div>
+            <Heart aria-hidden="true" size={20} fill={favorite ? "currentColor" : "none"} />
+          </button>
         }
       >
-        <div className="tool-enter" key={tool.id}>
-          <ToolComponent />
-        </div>
-      </Suspense>
+        <p className="atlas-tool-meta">
+          <StatusIcon aria-hidden="true" size={15} />{" "}
+          {tool.network ? "Network · Frankfurter" : "Works offline"}{" "}
+          <span>· {tool.status === "experimental" ? "Tester preview" : tool.risk + " risk"}</span>
+        </p>
+      </AtlasHeader>
+      <div className="screen-content atlas-tool-content">
+        <Suspense
+          fallback={
+            <div className="loading-panel" role="status">
+              Loading tool…
+            </div>
+          }
+        >
+          <div className="tool-enter" key={tool.id}>
+            <ToolComponent />
+          </div>
+        </Suspense>
+        <p className="atlas-tool-description">{tool.description}</p>
+      </div>
     </div>
   )
 }

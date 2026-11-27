@@ -110,6 +110,21 @@ function newService() {
 }
 
 describe("microphone recorder policy helpers", () => {
+  it.each([true, false])(
+    "passes the selected noise suppression preference (%s) to capture",
+    async (enabled) => {
+      const { service } = newService()
+      await service.start({
+        noiseSuppression: enabled,
+        maximumDurationMs: 60000,
+        maximumBytes: 1024,
+      })
+      expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith({
+        audio: { noiseSuppression: { ideal: enabled } },
+      })
+      await service.cancel()
+    },
+  )
   it("accepts bounds at the contract caps and rejects anything beyond", () => {
     expect(() =>
       validateRecordingOptions({

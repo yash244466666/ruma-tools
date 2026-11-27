@@ -295,7 +295,7 @@ export function CompassDial({
         return (
           <text
             fill={label === "N" ? "var(--text)" : "var(--text-secondary)"}
-            fontSize={label === "N" ? 18 : 14}
+            fontSize={22}
             fontWeight={label === "N" ? 700 : 500}
             key={label}
             textAnchor="middle"
@@ -314,8 +314,8 @@ export function CompassDial({
           transformOrigin: "120px 120px",
         }}
       >
-        <polygon fill="var(--primary)" points="120,34 130,120 110,120" />
-        <polygon fill="var(--text-secondary)" points="120,206 110,120 130,120" />
+        <polygon fill="var(--primary)" points="120,60 130,120 110,120" />
+        <polygon fill="var(--text-secondary)" points="120,180 110,120 130,120" />
       </g>
       <circle
         cx="120"

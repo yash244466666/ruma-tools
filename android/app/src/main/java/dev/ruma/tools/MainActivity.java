@@ -13,6 +13,7 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        PreviewPlugins.register(this);
         registerPlugin(DocumentFilesPlugin.class);
         registerPlugin(SensitiveClipboardPlugin.class);
         registerPlugin(GeneratedCachePlugin.class);
@@ -65,7 +66,8 @@ public class MainActivity extends BridgeActivity {
                     webView.evaluateJavascript(
                         "(() => { const hash = window.location.hash; " +
                         "if (hash && hash !== '#' && hash !== '#/') { " +
-                        "window.location.hash = '#/'; return true; } return false; })()",
+                        "const parent = document.querySelector('main[data-back-href]'); " +
+                        "window.location.hash = parent ? parent.dataset.backHref : '#/'; return true; } return false; })()",
                         handled -> {
                             if (!"true".equals(handled)) {
                                 setEnabled(false);
