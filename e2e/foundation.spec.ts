@@ -52,7 +52,9 @@ test("shell interactive controls meet the 48 dp touch floor", async ({ page }) =
   await page.goto("/#/")
 
   const assertFloor = async (selector: string) => {
-    const boxes = await page.locator(selector).evaluateAll((elements) =>
+    const controls = page.locator(selector)
+    await expect(controls.first()).toBeVisible()
+    const boxes = await controls.evaluateAll((elements) =>
       elements.map((element) => {
         const rect = element.getBoundingClientRect()
         return { width: rect.width, height: rect.height }
