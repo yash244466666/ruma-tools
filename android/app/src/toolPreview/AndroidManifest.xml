@@ -4,4 +4,9 @@
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
     <uses-feature android:name="android.hardware.location.gps" android:required="false"/>
+    <application>
+        <meta-data android:name="com.google.ar.core" android:value="optional"/>
+        <activity android:name=".ArMeasureActivity" android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden" android:theme="@android:style/Theme.Material.NoActionBar"/>
+    </application>
 </manifest>

@@ -36,3 +36,16 @@ export const gps = registerPlugin<{
   read(options: { key: string }): Promise<Partial<GpsFix>>
   stop(options: { key: string }): Promise<void>
 }>("TesterGps")
+
+export interface ArMeasurement {
+  area: number
+  length?: number
+  width?: number
+  height?: number
+}
+export const arMeasure = registerPlugin<{
+  start(options: { shape: "rectangle" | "outline" }): Promise<{
+    status: "measured" | "cancelled" | "unavailable" | "denied"
+    result?: ArMeasurement
+  }>
+}>("ArMeasure")

@@ -76,3 +76,36 @@ test("restores a packing list and removes it through settings", async ({ page })
   await page.goto("/#/tool/packing-checklist")
   await expect(page.getByText("0 of 0 packed")).toBeVisible()
 })
+test("photo ruler measures a box and the live tool links to its fallback", async ({ page }) => {
+  await page.goto("/#/tool/live-ar-measure")
+  await page.getByRole("link", { name: "Measure from a photo instead" }).click()
+  const png = await page.evaluate(() => {
+    const canvas = document.createElement("canvas")
+    canvas.width = 400
+    canvas.height = 400
+    const ctx = canvas.getContext("2d")!
+    ctx.fillStyle = "white"
+    ctx.fillRect(0, 0, 400, 400)
+    ctx.strokeRect(50, 100, 300, 200)
+    return canvas.toDataURL("image/png").split(",")[1] ?? ""
+  })
+  await pick(page, "Choose photo", "test-box.png", "image/png", Buffer.from(png, "base64"))
+  await page.getByText("Position a point with controls").click()
+  for (const [x, y] of [
+    [0, 0],
+    [25, 0],
+    [12.5, 25],
+    [87.5, 25],
+    [87.5, 75],
+    [12.5, 75],
+  ] as const) {
+    await page.getByLabel("Horizontal position (%)").fill(String(x))
+    await page.getByLabel("Vertical position (%)").fill(String(y))
+    await page.getByRole("button", { name: "Mark point", exact: true }).click()
+  }
+  await expect(page.getByText("600 cm²", { exact: true })).toBeVisible()
+  await page.getByLabel("Height (cm)").fill("10")
+  await expect(page.getByText(/6,000 cm³ · 6 L/)).toBeVisible()
+  await page.getByRole("button", { name: "Undo", exact: true }).click()
+  await expect(page.getByText("Mark the last corner.")).toBeVisible()
+})

@@ -93,6 +93,8 @@ const testerScope = new Set([
   "photo-redaction",
   "qr-photo-reader",
   "magnifier",
+  "photo-measure",
+  "live-ar-measure",
 ])
 
 /** @typedef {{ id: string, status: "PASS"|"FAIL"|"PENDING_PHYSICAL"|"INFO", detail: string }} Check */
