@@ -140,7 +140,7 @@ describe("application shell", () => {
     ]) {
       expect(text).toContain(durableClass)
     }
-    expect(text).toContain("never saves it automatically")
+    expect(text).toContain("unless you choose to save it")
   })
 
   it("clears every durable class when the clear action is confirmed", async () => {

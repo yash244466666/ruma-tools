@@ -106,19 +106,18 @@ export function SettingsScreen({
               <ul className="grid min-w-0 gap-2 text-sm leading-6 text-[var(--text-secondary)]">
                 <li>No account, ads, analytics, or automatic crash uploads.</li>
                 <li>
-                  Every tool except Currency Converter works offline and processes input on this
-                  device. Currency Converter is labeled in the catalog as requiring internet.
+                  Currency Converter needs an internet connection to refresh exchange rates. Cached
+                  rates can be used offline.
                 </li>
                 <li>
                   Currency Converter sends only the selected base currency code to Frankfurter
-                  (api.frankfurter.dev); amounts never leave this device. It is the only network
-                  provider in this release.
+                  (api.frankfurter.dev). The amount is calculated on this device.
                 </li>
                 {previewBuild && (
                   <li>
-                    The test APK requests camera, precise GPS or microphone access when you open the
-                    corresponding capture feature. IP Lookup can open RIPEstat in your browser after
-                    you select a public address.
+                    The test APK requests camera, precise GPS or microphone access when you start
+                    the corresponding feature. IP Lookup classifies addresses offline. Opening its
+                    RIPEstat link sends the selected public address to RIPEstat in your browser.
                   </li>
                 )}
                 <li>Android backup exclusions are configured for app-private data.</li>

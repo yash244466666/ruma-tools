@@ -139,12 +139,12 @@ function backKeyIsDelivered() {
 /** @returns {string} */
 function currentDevtoolsSocket() {
   const pid = adb("pidof", PACKAGE)
-  if (!pid) throw new Error(`${PACKAGE} is not running.`)
+  if (!/^\d+$/.test(pid)) throw new Error(`Expected one running process for ${PACKAGE}.`)
+  const socket = `webview_devtools_remote_${pid}`
   const unix = adb("cat", `/proc/${pid}/net/unix`)
-  const names = [...unix.matchAll(/webview_devtools_remote_\d+/g)].map((match) => match[0])
-  const unique = [...new Set(names)]
-  const socket = unique.sort().at(-1)
-  if (!socket) throw new Error("WebView devtools socket not found; is WebView debugging enabled?")
+  if (!unix.split(/\s+/).includes(`@${socket}`)) {
+    throw new Error("Debug WebView socket for the tester APK is unavailable.")
+  }
   return socket
 }
 
